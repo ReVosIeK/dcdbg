@@ -20,136 +20,73 @@
     </div>
     <div id="settings-screen" class="screen">
         <h2 class="menu-title">Ustawienia</h2>
-        <div class="setting-item">
-            <label for="language-select">Język:</label>
-            <select id="language-select">
-                <option value="pl">Polski</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-        <div class="setting-item">
-            <label for="ui-scale-slider">Skalowanie interfejsu:</label>
-            <input type="range" id="ui-scale-slider" min="0.8" max="1.2" step="0.1" value="1">
-        </div>
+        <div class="setting-item"><label for="language-select">Język:</label><select id="language-select"><option value="pl">Polski</option><option value="en">English</option></select></div>
+        <div class="setting-item"><label for="ui-scale-slider">Skalowanie interfejsu:</label><input type="range" id="ui-scale-slider" min="0.8" max="1.2" step="0.1" value="1"></div>
         <button id="back-to-menu-button" class="btn">Powrót</button>
     </div>
 
     <div id="game-container" class="screen">
         <div id="game-board">
-            
-            
-
+            <div id="specials-container" class="nested-grid-container"><div id="main-deck-container" class="game-zone deck-stack" data-zone-name="Talia Główna"></div><div id="destroyed-pile-container" class="game-zone deck-stack" data-zone-name="Zniszczone"></div><div id="locations-container" class="game-zone" data-zone-name="Lokacje"></div><div id="discard-pile-container" class="game-zone deck-stack" data-zone-name="Stos Odrzuconych"></div><div id="player-deck-container" class="game-zone deck-stack" data-zone-name="Talia Gracza"></div></div>
             <div id="line-up-container" class="game-zone" data-zone-name="Line-Up"></div>
-
-            <div id="stacks-container" class="nested-grid-container">
-                 <div id="kick-stack-container" class="game-zone deck-stack" data-zone-name="Stos 'Kick'"></div>
-                <div id="super-villain-stack-container" class="game-zone deck-stack" data-zone-name="Super-złoczyńcy"></div>
-                <div id="weakness-stack-container" class="game-zone deck-stack" data-zone-name="Stos 'Weakness'"></div>
-            </div>
-
-             <div id="specials-container" class="nested-grid-container">
-                <div id="main-deck-container" class="game-zone deck-stack" data-zone-name="Talia Główna"></div>
-                <div id="destroyed-pile-container" class="game-zone deck-stack" data-zone-name="Zniszczone"></div>
-                <div id="locations-container" class="game-zone" data-zone-name="Lokacje"></div>
-                <div id="discard-pile-container" class="game-zone deck-stack" data-zone-name="Stos Odrzuconych"></div>
-                <div id="player-deck-container" class="game-zone deck-stack" data-zone-name="Talia Gracza"></div>
-            </div>
-            
-            <div id="play-area-container" class="game-zone" data-zone-name="Strefa Gry">
-                <div id="play-area-wrapper"></div>
-            </div>
-            
-            <div id="player-hand-container" class="game-zone" data-zone-name="Ręka Gracza">
-                <div id="hand-cards-wrapper"></div>
-            </div>
-            
-            <div id="player-superhero-container" class="game-zone">
-                <div id="superhero-card-area" data-zone-name="Superbohater"></div>
-                <div id="hud-container">
-                    <p id="power-display">Moc: <span id="power-value">0</span></p>
-                    <button id="end-turn-button" class="btn">Zakończ Turę</button>
-                </div>
-            </div>
-
+            <div id="stacks-container" class="nested-grid-container"><div id="kick-stack-container" class="game-zone deck-stack" data-zone-name="Stos 'Kick'"></div><div id="super-villain-stack-container" class="game-zone deck-stack" data-zone-name="Super-złoczyńcy"></div><div id="weakness-stack-container" class="game-zone deck-stack" data-zone-name="Stos 'Weakness'"></div></div>
+            <div id="play-area-container" class="game-zone" data-zone-name="Strefa Gry"><div id="play-area-wrapper"></div></div>
+            <div id="player-hand-container" class="game-zone" data-zone-name="Ręka Gracza"><div id="hand-cards-wrapper"></div></div>
+            <div id="player-superhero-container" class="game-zone"><div id="superhero-card-area" data-zone-name="Superbohater"></div><div id="hud-container"><p id="power-display">Moc: <span id="power-value">0</span></p><button id="end-turn-button" class="btn">Zakończ Turę</button></div></div>
             <div id="menu-bar-container">
                 <button id="debug-toggle-button" title="Panel Debugowania">
-                    <svg xmlns="http://www.w3.org/2000/svg" id="Filled" viewBox="0 0 24 24" width="512" height="512"><path d="M0,19v4a1,1,0,0,0,2,0V19H4.93a8.248,8.248,0,0,0,14.14,0H22v4a1,1,0,0,0,2,0V19a2,2,0,0,0-2-2H19.947a8.2,8.2,0,0,0,.325-2.273A8.37,8.37,0,0,0,20.2,13.7l-.175-.7H23a1,1,0,0,0,0-2H19.522L18.513,7H22a2,2,0,0,0,2-2V1a1,1,0,0,0-2,0V5H18c-.018,0-.032.009-.05.01a6.411,6.411,0,0,0-11.89,0C6.039,5.011,6.021,5,6,5H2V1A1,1,0,0,0,0,1V5A2,2,0,0,0,2,7H5.485L4.472,11H1a1,1,0,0,0,0,2H3.965l-.145.573L3.8,13.7a8.37,8.37,0,0,0-.07,1.032A8.2,8.2,0,0,0,4.053,17H2A2,2,0,0,0,0,19Z"/></svg>
+                    <svg id="Layer_1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1"><path d="m21.5 14.066v1.349c0 .996-.681 1.92-1.664 2.08-1.253.204-2.336-.758-2.336-1.973v-1.456c0-.489-.576-.744-.946-.424-.949.821-1.554 2.026-1.554 3.38 0 1.956 1.256 3.605 3 4.224v1.753c0 .552.448 1 1 1h1c.552 0 1-.448 1-1v-1.753c1.744-.62 3-2.268 3-4.224 0-1.354-.604-2.56-1.554-3.38-.37-.32-.946-.065-.946.424zm-5.905 8.121c-1.082.512-2.294.812-3.594.813-3.074-.003-5.699-1.594-7.119-4h-.882c-1.105 0-2 .895-2 2v2c0 .552-.448 1-1 1s-1-.448-1-1v-2c0-2.209 1.791-4 4-4h.042c-.185-.686-.292-1.406-.293-2.157-.016-.534.093-1.282.264-1.843h-3.013c-.552 0-1-.448-1-1s.448-1 1-1h3.516l1.006-4h-1.522c-2.209 0-4-1.791-4-4v-2c0-.552.448-1 1-1s1 .448 1 1v2c0 1.105.895 2 2 2h2.08c.992-2.396 3.329-3.997 5.918-4 2.591.003 4.929 1.604 5.92 4h2.081c1.105 0 2-.895 2-2v-2c0-.552.447-1 1-1s1 .448 1 1v2c0 2.209-1.791 4-4 4h-1.523l.882 3.507c-3.524.075-6.36 2.95-6.36 6.493 0 2.122 1.021 4.001 2.595 5.187z"/></svg>
                 </button>
                 <button id="settings-ingame-button" title="Ustawienia">
                     <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24" width="512" height="512"><path d="M21,12a9.143,9.143,0,0,0-.15-1.645L23.893,8.6l-3-5.2L17.849,5.159A9,9,0,0,0,15,3.513V0H9V3.513A9,9,0,0,0,6.151,5.159L3.107,3.4l-3,5.2L3.15,10.355a9.1,9.1,0,0,0,0,3.29L.107,15.4l3,5.2,3.044-1.758A9,9,0,0,0,9,20.487V24h6V20.487a9,9,0,0,0,2.849-1.646L20.893,20.6l3-5.2L20.85,13.645A9.143,9.143,0,0,0,21,12Zm-6,0a3,3,0,1,1-3-3A3,3,0,0,1,15,12Z"/></svg>
                 </button>
                 <button id="reset-game-button" title="Resetuj Grę">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 511.494 511.494" style="enable-background:new 0 0 511.494 511.494;" xml:space="preserve" width="512" height="512"> <g> <path d="M478.291,255.492c-16.133,0.143-29.689,12.161-31.765,28.16c-15.37,105.014-112.961,177.685-217.975,162.315   S50.866,333.006,66.236,227.992S179.197,50.307,284.211,65.677c35.796,5.239,69.386,20.476,96.907,43.959l-24.107,24.107   c-8.33,8.332-8.328,21.84,0.004,30.17c4.015,4.014,9.465,6.262,15.142,6.246h97.835c11.782,0,21.333-9.551,21.333-21.333V50.991   c-0.003-11.782-9.556-21.331-21.338-21.329c-5.655,0.001-11.079,2.248-15.078,6.246l-28.416,28.416   C320.774-29.34,159.141-19.568,65.476,86.152S-18.415,353.505,87.304,447.17s267.353,83.892,361.017-21.828   c32.972-37.216,54.381-83.237,61.607-132.431c2.828-17.612-9.157-34.183-26.769-37.011   C481.549,255.641,479.922,255.505,478.291,255.492z"/> </g> </svg>
-                </button>
-            </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 511.494 511.494" style="enable-background:new 0 0 511.494 511.494;" xml:space="preserve" width="512" height="512"> <g> <path d="M478.291,255.492c-16.133,0.143-29.689,12.161-31.765,28.16c-15.37,105.014-112.961,177.685-217.975,162.315   S50.866,333.006,66.236,227.992S179.197,50.307,284.211,65.677c35.796,5.239,69.386,20.476,96.907,43.959l-24.107,24.107   c-8.33,8.332-8.328,21.84,0.004,30.17c4.015,4.014,9.465,6.262,15.142,6.246h97.835c11.782,0,21.333-9.551,21.333-21.333V50.991   c-0.003-11.782-9.556-21.331-21.338-21.329c-5.655,0.001-11.079,2.248-15.078,6.246l-28.416,28.416   C320.774-29.34,159.141-19.568,65.476,86.152S-18.415,353.505,87.304,447.17s267.353,83.892,361.017-21.828   c32.972-37.216,54.381-83.237,61.607-132.431c2.828-17.612-9.157-34.183-26.769-37.011   C481.549,255.641,479.922,255.505,478.291,255.492z"/> </g> </svg>
+                </button></div>
         </div>
     </div>
     
     <div id="debug-panel" class="hidden">
         <button id="debug-close-button" class="close-button">&times;</button>
         <h3>Panel Debugowania</h3>
-        <div class="debug-controls">
-            <button id="debug-power-plus-1">+1 Moc</button>
-            <button id="debug-power-minus-1">-1 Moc</button>
-            <button id="debug-draw-card">Dobierz Kartę</button>
-            <button id="debug-end-game">Wymuś Koniec Gry</button>
-        </div>
-        <div class="debug-controls">
-            <button id="debug-add-to-hand-btn">Dodaj do Ręki</button>
-            <button id="debug-add-to-lineup-btn">Dodaj do Line-Up</button>
-            <button id="debug-destroy-card-btn">Zniszcz Kartę</button>
-        </div>
+        <div class="debug-controls"><button id="debug-power-add">Dodaj Moc</button><button id="debug-power-remove">Odejmij Moc</button><button id="debug-draw-card">Dobierz Kartę</button><button id="debug-end-game">Wymuś Koniec Gry</button></div>
+        <div class="debug-controls"><button id="debug-add-to-hand-btn">Dodaj do Ręki</button><button id="debug-add-to-lineup-btn">Dodaj do Line-Up</button><button id="debug-destroy-card-btn">Zniszcz Kartę</button></div>
         <div id="debug-selection-container" class="debug-controls"></div>
     </div>
 
-    <div id="card-inspector-modal" class="hidden modal-overlay">
-        <div class="modal-content">
-            <button class="close-button">&times;</button>
-            <img src="" alt="Card Inspector">
-        </div>
-    </div>
+    <div id="card-inspector-modal" class="hidden modal-overlay"><div class="modal-content"><button class="close-button">&times;</button><img src="" alt="Card Inspector"></div></div>
+    
+    <div id="ingame-settings-modal" class="hidden modal-overlay"><div class="modal-content settings-modal"><button class="close-button">&times;</button><h2 class="menu-title">Ustawienia</h2><div class="setting-item"><label for="language-select-ingame">Język:</label><select id="language-select-ingame"><option value="pl">Polski</option><option value="en">English</option></select></div><div class="setting-item"><label for="ui-scale-slider-ingame">Skalowanie interfejsu:</label><input type="range" id="ui-scale-slider-ingame" min="0.8" max="1.2" step="0.05" value="0.9"></div></div></div>
 
-    <div id="ingame-settings-modal" class="hidden modal-overlay">
-        <div class="modal-content settings-modal">
-            <button class="close-button">&times;</button>
-            <h2 class="menu-title">Ustawienia</h2>
-            <div class="setting-item">
-                <label for="language-select-ingame">Język:</label>
-                <select id="language-select-ingame">
-                    <option value="pl">Polski</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label for="ui-scale-slider-ingame">Skalowanie interfejsu:</label>
-                <input type="range" id="ui-scale-slider-ingame" min="0.8" max="1.2" step="0.05" value="0.9">
-            </div>
-        </div>
-    </div>
+    <div id="confirmation-modal" class="hidden modal-overlay"><div class="modal-content confirmation-modal"><p id="confirmation-text">Czy na pewno?</p><div class="confirmation-buttons"><button id="confirm-yes-btn" class="btn">Tak</button><button id="confirm-no-btn" class="btn btn-secondary">Nie</button></div></div></div>
 
     <div id="choice-modal" class="hidden modal-overlay">
-        <div class="modal-content choice-modal">
-            <h3 id="choice-modal-title">Wybierz kartę:</h3>
-            <div id="choice-modal-cards" class="card-list-container"></div>
-            <div class="choice-modal-buttons">
-                <button id="choice-modal-cancel" class="btn btn-secondary">Anuluj</button>
+    <div class="modal-content choice-modal">
+        <h3 id="choice-modal-title">Wybierz kartę:</h3>
+        <div id="choice-modal-cards" class="card-list-container"></div>
+        <div class="choice-modal-buttons">
+            <button id="choice-modal-confirm" class="btn hidden">Zatwierdź</button> <button id="choice-modal-cancel" class="btn btn-secondary">Anuluj</button>
+        </div>
+    </div>
+</div>
+
+    <div id="input-modal" class="hidden modal-overlay">
+        <div class="modal-content confirmation-modal">
+            <h3 id="input-modal-title">Podaj wartość</h3>
+            <div class="input-modal-body">
+                <label id="input-modal-label" for="input-modal-input">Wartość:</label>
+                <input type="number" id="input-modal-input" min="0" value="1">
+            </div>
+            <div class="confirmation-buttons">
+                <button id="input-modal-ok" class="btn">OK</button>
+                <button id="input-modal-cancel" class="btn btn-secondary">Anuluj</button>
             </div>
         </div>
     </div>
 
-    <div id="confirmation-modal" class="hidden modal-overlay">
-        <div class="modal-content confirmation-modal">
-            <p id="confirmation-text">Czy na pewno?</p>
-            <div class="confirmation-buttons">
-                <button id="confirm-yes-btn" class="btn">Tak</button>
-                <button id="confirm-no-btn" class="btn btn-secondary">Nie</button>
-            </div>
-        </div>
-    </div>
 
     <script src="i18n.js" defer></script>
     <script src="utils.js" defer></script>
-    
     <script src="effects.js" defer></script> 
     <script src="card_effects/draw.js" defer></script>
     <script src="card_effects/conditional_power.js" defer></script>
@@ -157,7 +94,7 @@
     <script src="card_effects/on_play_effect.js" defer></script>
     <script src="card_effects/then_discard_card.js" defer></script>
     <script src="card_effects/ongoing_triggered_ability.js" defer></script>
-    
+    <script src="card_effects/end_of_turn.js" defer></script>
     <script src="script.js" defer></script>
 </body>
 </html>

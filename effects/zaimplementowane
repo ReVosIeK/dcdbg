@@ -1,0 +1,44 @@
+Efekty Zaimplementowane
+Dobieranie kart (draw)
+
+Przykład: Kid Flash
+
+Moc warunkowa (conditional_power)
+
+Przykłady: Mera, High-Tech Hero
+
+Wybór "Albo/Albo" (on_play_effect:choice...)
+
+Przykład: Clayface
+
+Interakcja ze stosem odrzuconych (on_play_effect:move...)
+
+Przykłady: Robin, Bat-Sygnał
+
+Zdobywanie kart z Line-Up (on_play_effect:gain...)
+
+Przykład: Cheetah
+
+Niszczenie kart (on_play_effect:may_destroy...)
+
+Przykład: Heat Vision
+
+Efekty przy zdobyciu (on_gain_or_buy)
+
+Przykład: Solomon Grundy
+
+Ponowne zagranie karty (on_play_effect:play_again...)
+
+Przykład: Green Arrow
+
+Efekty stałe (Lokacje) (ongoing_triggered_ability)
+
+Przykład: The Batcave
+
+Dobierz i Odrzuć (then_discard_card)
+
+Przykład: The Penguin
+
+Ataki (attack)
+
+Przykłady: Bane, Scarecrow (na razie w formie logów w konsoli)

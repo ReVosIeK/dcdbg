@@ -1,0 +1,26 @@
+Efekty do Zaimplementowania (Propozycje)
+Oto kilka kluczowych mechanik, które pozostały do wdrożenia:
+
+Obrona przed atakami (defense_effect)
+
+Przykład: Lasso of Truth - Pozwala anulować atak i dobrać kartę. Wymaga rozbudowy mechaniki ataków.
+
+Efekty zależne od kosztu
+
+Przykład: Aquaman - +1 Moc za każdą inną kartę, którą zagrałeś w tej turze, o koszcie 5 lub wyższym.
+
+Interakcja z talią główną
+
+Przykład: Lex Luthor - Możesz położyć wierzchnią kartę z talii głównej na spód tej talii.
+
+Interakcja ze stosem kart zniszczonych
+
+Przykład: Man of Steel - Połóż wszystkie karty ze swojego stosu kart odrzuconych na spód swojej talii. Możesz wziąć jedną kartę typu Bohater ze stosu kart zniszczonych na swoją rękę.
+
+Bardziej złożone ataki
+
+Przykład: Ra's al Ghul - Atak, który zmusza przeciwników do zniszczenia karty z ręki.
+
+Zdolności Superbohaterów (player_ability)
+
+Przykład: Batman - +1 Moc za każdy Ekwipunek, który zagrasz w swojej turze. To wymagałoby mechanizmu, który śledzi zagrane karty i na bieżąco aktualizuje moc.

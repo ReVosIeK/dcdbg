@@ -1,5 +1,4 @@
 // effects.js
-// Ten plik będzie teraz automatycznie ładował i zarządzał wszystkimi efektami.
+// Ten plik inicjuje globalny obiekt, który będzie uzupełniany przez skrypty w folderze /card_effects/.
 
-// Na razie inicjujemy pusty obiekt. Skrypty z folderu card_effects go uzupełnią.
 const cardEffects = {};

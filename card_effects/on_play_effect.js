@@ -8,8 +8,13 @@ cardEffects.on_play_effect = async (gameState, player, params, engine) => {
     const effectTag = params.join(':');
     const command = effectTag.split('_')[0];
 
+    // ================== LOG DIAGNOSTYCZNY #3 ==================
+    console.log(`[DEBUG] Efekt 'on_play_effect' został wywołany z komendą: '${command}' (pełny tag: ${effectTag})`);
+    // ==========================================================
+
     switch (command) {
         case 'move': {
+            console.log("[DEBUG] Rozpoznano komendę 'move'.");
             const parts = effectTag.split('_');
             const cardType = parseTypeFromTag(parts[parts.length - 1]);
             const validChoices = player.discard.filter(card => card.type === cardType);
@@ -25,6 +30,7 @@ cardEffects.on_play_effect = async (gameState, player, params, engine) => {
             break;
         }
         case 'may': {
+            console.log("[DEBUG] Rozpoznano komendę 'may'.");
             if (effectTag.startsWith('may_destroy_card_from_hand_or_discard')) {
                 const validChoices = [...player.hand, ...player.discard];
                 if (validChoices.length === 0) return;
@@ -57,6 +63,7 @@ cardEffects.on_play_effect = async (gameState, player, params, engine) => {
             break;
         }
         case 'gain': {
+            console.log("[DEBUG] Rozpoznano komendę 'gain'.");
             const parts = effectTag.split('_');
             const maxCost = parseInt(parts[parts.length - 1], 10);
             const validChoices = gameState.lineUp.filter(card => card && card.cost <= maxCost);
@@ -72,6 +79,7 @@ cardEffects.on_play_effect = async (gameState, player, params, engine) => {
             break;
         }
         case 'choice': {
+            console.log("[DEBUG] Rozpoznano komendę 'choice'. Uruchamianie modala...");
             const parts = effectTag.split('_');
             const drawCount = parseInt(parts[2], 10);
             const powerAmount = parseInt(parts[6], 10);
@@ -89,21 +97,74 @@ cardEffects.on_play_effect = async (gameState, player, params, engine) => {
         }
         case 'play': {
             if (effectTag === 'play_again_card_choice_from_played_this_turn') {
-                if(!player.playedCards) return;
-                const lastPlayedCard = player.playedCards[player.playedCards.length - 1];
-                const validChoices = player.playedCards.filter(c => c && lastPlayedCard && c.instanceId !== lastPlayedCard.instanceId);
+                if (!player.playedCards || player.playedCards.length === 0) return;
+
+                // wybieramy karty zagrane wcześniej w tej turze, bez Clayface
+                const validChoices = player.playedCards.filter(c => c && c.id !== 'clayface');
                 if (validChoices.length === 0) return;
-                const chosenCardInstanceId = await engine.promptPlayerChoice('Wybierz kartę do zagrania ponownie:', validChoices);
-                if (chosenCardInstanceId) {
-                    const cardToReplay = validChoices.find(c => c.instanceId === chosenCardInstanceId);
-                    if (cardToReplay) {
-                        console.log(`Replaying card: ${cardToReplay.name_en}`);
-                        gameState.currentPower += cardToReplay.power || 0;
-                        for (const tag of cardToReplay.effect_tags) {
-                            await engine.applyCardEffect(tag, gameState, player, {});
-                        }
-                        engine.renderGameBoard();
+
+                const selection = await engine.promptPlayerChoice('Wybierz kartę do zagrania ponownie:', validChoices);
+                const chosenCardInstanceId = Array.isArray(selection) ? selection[0] : selection;
+                if (!chosenCardInstanceId) return;
+
+                const cardToReplay = validChoices.find(c => c.instanceId === chosenCardInstanceId);
+                if (!cardToReplay) return;
+
+                console.log(`[Clayface] Ponowne zagranie karty: ${cardToReplay.name_en || cardToReplay.id}`);
+
+                // 1) tylko licznik typu — NIE dodajemy ponownie do playedCards
+                const playsOfThisType = player.playedCardTypeCounts.get(cardToReplay.type) || 0;
+                player.playedCardTypeCounts.set(cardToReplay.type, playsOfThisType + 1);
+
+                // 2) triggery z lokacji
+                for (const locationCard of player.ongoing) {
+                    if (!locationCard || locationCard.instanceId === cardToReplay.instanceId) continue;
+                    const locTags = Array.isArray(locationCard.effect_tags) ? locationCard.effect_tags : [];
+                    for (const tag of locTags) {
+                        await engine.applyCardEffect(tag, gameState, player, { playedCard: cardToReplay, playsOfThisType });
                     }
+                }
+
+                // 3) moc i wszystkie efekty karty
+                gameState.currentPower += cardToReplay.power || 0;
+                const replayTags = Array.isArray(cardToReplay.effect_tags) ? cardToReplay.effect_tags : [];
+                for (const tag of replayTags) {
+                    await engine.applyCardEffect(tag, gameState, player, {});
+                }
+
+                engine.renderGameBoard();
+            }
+            break;
+        }
+    case 'bottom': {
+            if (effectTag.startsWith('bottom_deck_hand_cards_cost_ge_1_then_draw')) {
+                const validChoices = player.hand.filter(c => c.cost >= 1);
+                if (validChoices.length === 0) return;
+
+                const useAbility = await engine.promptConfirmation("Czy chcesz odłożyć karty z ręki na spód talii, aby dobrać nowe?");
+                if (!useAbility) return;
+                
+                const chosenCardIds = await engine.promptPlayerChoice(
+                    'Wybierz karty, które chcesz odłożyć:', 
+                    validChoices,
+                    // Gracz może wybrać od 0 do wszystkich pasujących kart
+                    { selectionCount: validChoices.length, isCancellable: true, canSelectLess: true }
+                );
+
+                if (chosenCardIds && chosenCardIds.length > 0) {
+                    const cardsToMove = [];
+                    chosenCardIds.forEach(instanceId => {
+                        const cardIndex = player.hand.findIndex(c => c.instanceId === instanceId);
+                        if (cardIndex !== -1) {
+                            cardsToMove.push(player.hand.splice(cardIndex, 1)[0]);
+                        }
+                    });
+                    
+                    // Umieść karty na spodzie talii
+                    player.deck.splice(0, 0, ...cardsToMove);
+                    
+                    // Dobierz tyle samo kart
+                    drawCards(player, cardsToMove.length);
                 }
             }
             break;

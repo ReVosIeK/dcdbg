@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const screens = { start: document.getElementById('start-screen'), mainMenu: document.getElementById('main-menu-screen'), settings: document.getElementById('settings-screen'), game: document.getElementById('game-container') };
     const buttons = { play: document.getElementById('play-button'), singlePlayer: document.getElementById('single-player-button'), multiplayer: document.getElementById('multiplayer-button'), settings: document.getElementById('settings-button'), backToMenu: document.getElementById('back-to-menu-button'), endTurn: document.getElementById('end-turn-button') };
     const gameBoardElements = { playerHand: document.getElementById('player-hand-container'), handCardsWrapper: document.getElementById('hand-cards-wrapper'), lineUp: document.getElementById('line-up-container'), playArea: document.getElementById('play-area-container'), playAreaWrapper: document.getElementById('play-area-wrapper'), mainDeck: document.getElementById('main-deck-container'), playerDeck: document.getElementById('player-deck-container'), playerDiscard: document.getElementById('discard-pile-container'), locations: document.getElementById('locations-container'), destroyed: document.getElementById('destroyed-pile-container'), kickStack: document.getElementById('kick-stack-container'), weaknessStack: document.getElementById('weakness-stack-container'), superVillainStack: document.getElementById('super-villain-stack-container'), superheroArea: document.getElementById('superhero-card-area'), powerValue: document.getElementById('power-value'), };
-    const debug = { toggleButton: document.getElementById('debug-toggle-button'), closeButton: document.getElementById('debug-close-button'), panel: document.getElementById('debug-panel'), powerAdd: document.getElementById('debug-power-add'), powerRemove: document.getElementById('debug-power-remove'), drawCard: document.getElementById('debug-draw-card'), endGame: document.getElementById('debug-end-game'), addToHandBtn: document.getElementById('debug-add-to-hand-btn'), addToLineupBtn: document.getElementById('debug-add-to-lineup-btn'), destroyCardBtn: document.getElementById('debug-destroy-card-btn'), selectionContainer: document.getElementById('debug-selection-container'), };
+    const debug = { toggleButton: document.getElementById('debug-toggle-button'), closeButton: document.getElementById('debug-close-button'), panel: document.getElementById('debug-panel'), powerPlus: document.getElementById('debug-power-plus-1'), powerMinus: document.getElementById('debug-power-minus-1'), drawCard: document.getElementById('debug-draw-card'), endGame: document.getElementById('debug-end-game'), addToHandBtn: document.getElementById('debug-add-to-hand-btn'), addToLineupBtn: document.getElementById('debug-add-to-lineup-btn'), destroyCardBtn: document.getElementById('debug-destroy-card-btn'), selectionContainer: document.getElementById('debug-selection-container'), };
     const cardInspectorModal = document.getElementById('card-inspector-modal');
     const cardInspectorImage = cardInspectorModal?.querySelector('img');
     const closeModalButton = cardInspectorModal?.querySelector('.close-button');
@@ -42,75 +42,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupEventListeners() {
-    if(buttons.play) buttons.play.addEventListener('click', () => showScreen('mainMenu'));
-    if(buttons.settings) buttons.settings.addEventListener('click', () => showScreen('settings'));
-    if(buttons.backToMenu) buttons.backToMenu.addEventListener('click', () => showScreen('mainMenu'));
-    if(buttons.singlePlayer) buttons.singlePlayer.addEventListener('click', () => { showScreen('game'); startGame(); });
-    if(gameBoard) gameBoard.addEventListener('contextmenu', handleCardRightClick);
-    if(closeModalButton) closeModalButton.addEventListener('click', hideInspector);
-    if(cardInspectorModal) cardInspectorModal.addEventListener('click', (e) => { if (e.target === cardInspectorModal) hideInspector(); });
-    if(choiceModal) choiceModal.addEventListener('contextmenu', handleCardRightClick);
-    if(gameBoardElements.playerHand) gameBoardElements.playerHand.addEventListener('click', handlePlayerHandClick);
-    if(gameBoardElements.lineUp) gameBoardElements.lineUp.addEventListener('click', handleLineUpClick);
-    if(gameBoardElements.kickStack) gameBoardElements.kickStack.addEventListener('click', handleKickStackClick);
-    if(buttons.endTurn) buttons.endTurn.addEventListener('click', endTurn);
-    if(languageSelect) languageSelect.addEventListener('change', (e) => { currentLang = e.target.value; });
-    if(settingsIngameButton) settingsIngameButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.remove('hidden'); });
-    if(closeIngameSettingsButton) closeIngameSettingsButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
-    if(ingameSettingsModal) ingameSettingsModal.addEventListener('click', (e) => { if (e.target === ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
-    if(uiScaleSlider) uiScaleSlider.addEventListener('input', (e) => { if(gameBoard) gameBoard.style.transform = `scale(${e.target.value})`; });
-    if(resetGameButton) resetGameButton.addEventListener('click', () => { if (confirm('Czy na pewno chcesz zresetować grę?')) startGame(); });
-    
-    // Listenery Panelu Debugowania
-    if(debug.toggleButton) debug.toggleButton.addEventListener('click', () => { debug.panel.classList.toggle('hidden'); debug.selectionContainer.innerHTML = ''; });
-    if(debug.closeButton) debug.closeButton.addEventListener('click', () => { debug.panel.classList.add('hidden'); debug.selectionContainer.innerHTML = ''; });
-    
-    if(debug.powerAdd) debug.powerAdd.addEventListener('click', async () => {
-        if (!gameState.player) return;
-        const amount = await promptForValue("Podaj ilość mocy do dodania:");
-        if (amount !== null && amount > 0) {
-            gameState.currentPower += amount;
-            renderGameBoard();
+        if(buttons.play) buttons.play.addEventListener('click', () => showScreen('mainMenu'));
+        if(buttons.settings) buttons.settings.addEventListener('click', () => showScreen('settings'));
+        if(buttons.backToMenu) buttons.backToMenu.addEventListener('click', () => showScreen('mainMenu'));
+        if(buttons.singlePlayer) buttons.singlePlayer.addEventListener('click', () => { showScreen('game'); startGame(); });
+        if(gameBoard) gameBoard.addEventListener('contextmenu', handleCardRightClick);
+        if(closeModalButton) closeModalButton.addEventListener('click', hideInspector);
+        if(cardInspectorModal) cardInspectorModal.addEventListener('click', (e) => { if (e.target === cardInspectorModal) hideInspector(); });
+        if(choiceModal) choiceModal.addEventListener('contextmenu', handleCardRightClick);
+        if(gameBoardElements.playerHand) gameBoardElements.playerHand.addEventListener('click', handlePlayerHandClick);
+        if(gameBoardElements.lineUp) gameBoardElements.lineUp.addEventListener('click', handleLineUpClick);
+        if(gameBoardElements.kickStack) gameBoardElements.kickStack.addEventListener('click', handleKickStackClick);
+        if(buttons.endTurn) buttons.endTurn.addEventListener('click', endTurn);
+        if(languageSelect) languageSelect.addEventListener('change', (e) => { currentLang = e.target.value; });
+        if(settingsIngameButton) settingsIngameButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.remove('hidden'); });
+        if(closeIngameSettingsButton) closeIngameSettingsButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
+        if(ingameSettingsModal) ingameSettingsModal.addEventListener('click', (e) => { if (e.target === ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
+        if(uiScaleSlider) uiScaleSlider.addEventListener('input', (e) => { if(gameBoard) gameBoard.style.transform = `scale(${e.target.value})`; });
+        if(resetGameButton) resetGameButton.addEventListener('click', () => { if (confirm('Czy na pewno chcesz zresetować grę?')) startGame(); });
+        if(debug.toggleButton) debug.toggleButton.addEventListener('click', () => { debug.panel.classList.toggle('hidden'); debug.selectionContainer.innerHTML = ''; });
+        if(debug.closeButton) debug.closeButton.addEventListener('click', () => { debug.panel.classList.add('hidden'); debug.selectionContainer.innerHTML = ''; });
+        if(debug.powerPlus) debug.powerPlus.addEventListener('click', () => { if (!gameState.player) return; gameState.currentPower++; renderGameBoard(); });
+        if(debug.powerMinus) debug.powerMinus.addEventListener('click', () => { if (!gameState.player) return; gameState.currentPower = Math.max(0, gameState.currentPower - 1); renderGameBoard(); });
+        if(debug.drawCard) debug.drawCard.addEventListener('click', () => { if (!gameState.player) return; drawCards(gameState.player, 1); renderGameBoard(); });
+        if(debug.endGame) debug.endGame.addEventListener('click', () => alert("KONIEC GRY (funkcja debugowania)"));
+        if(debug.addToHandBtn) debug.addToHandBtn.addEventListener('click', () => createCardSelector('addToHand', 'Dodaj do ręki:'));
+        if(debug.addToLineupBtn) debug.addToLineupBtn.addEventListener('click', () => createCardSelector('addToLineup', 'Dodaj do Line-Up:'));
+        if(debug.destroyCardBtn) debug.destroyCardBtn.addEventListener('click', () => createCardSelector('destroyCard', 'Wybierz typ karty do zniszczenia:'));
+        if(choiceModalCancel) choiceModalCancel.addEventListener('click', () => choiceModal.classList.add('hidden'));
+        const debugHeader = debug.panel?.querySelector('h3');
+        if (debugHeader) {
+            let isDragging = false, offsetX, offsetY;
+            debugHeader.addEventListener('mousedown', (e) => { isDragging = true; offsetX = e.clientX - debug.panel.offsetLeft; offsetY = e.clientY - debug.panel.offsetTop; debug.panel.style.transform = 'none'; document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp); });
+            function onMouseMove(e) { if (!isDragging) return; debug.panel.style.left = `${e.clientX - offsetX}px`; debug.panel.style.top = `${e.clientY - offsetY}px`; }
+            function onMouseUp() { isDragging = false; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
         }
-    });
-
-    if(debug.powerRemove) debug.powerRemove.addEventListener('click', async () => {
-        if (!gameState.player) return;
-        const amount = await promptForValue("Podaj ilość mocy do odjęcia:");
-        if (amount !== null && amount > 0) {
-            gameState.currentPower = Math.max(0, gameState.currentPower - amount);
-            renderGameBoard();
-        }
-    });
-
-    if(debug.drawCard) debug.drawCard.addEventListener('click', () => { if (!gameState.player) return; drawCards(gameState.player, 1); renderGameBoard(); });
-    if(debug.endGame) debug.endGame.addEventListener('click', () => alert("KONIEC GRY (funkcja debugowania)"));
-    if(debug.addToHandBtn) debug.addToHandBtn.addEventListener('click', () => createCardSelector('addToHand', 'Dodaj do ręki:'));
-    if(debug.addToLineupBtn) debug.addToLineupBtn.addEventListener('click', () => createCardSelector('addToLineup', 'Dodaj do Line-Up:'));
-    if(debug.destroyCardBtn) debug.destroyCardBtn.addEventListener('click', () => createCardSelector('destroyCard', 'Wybierz typ karty do zniszczenia:'));
-    if(choiceModalCancel) choiceModalCancel.addEventListener('click', () => choiceModal.classList.add('hidden'));
-    
-    // Przeciąganie panelu debugowania
-    const debugHeader = debug.panel?.querySelector('h3');
-    if (debugHeader) {
-        let isDragging = false, offsetX, offsetY;
-        debugHeader.addEventListener('mousedown', (e) => { isDragging = true; offsetX = e.clientX - debug.panel.offsetLeft; offsetY = e.clientY - debug.panel.offsetTop; debug.panel.style.transform = 'none'; document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp); });
-        function onMouseMove(e) { if (!isDragging) return; debug.panel.style.left = `${e.clientX - offsetX}px`; debug.panel.style.top = `${e.clientY - offsetY}px`; }
-        function onMouseUp() { isDragging = false; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
+        const makeWrapperDraggable = (wrapperElement) => {
+            if(!wrapperElement) return;
+            let isDown = false, startX, scrollLeft;
+            wrapperElement.addEventListener('mousedown', (e) => { isDown = true; wrapperElement.classList.add('active'); startX = e.pageX - wrapperElement.offsetLeft; scrollLeft = wrapperElement.scrollLeft; });
+            wrapperElement.addEventListener('mouseleave', () => { isDown = false; wrapperElement.classList.remove('active'); });
+            wrapperElement.addEventListener('mouseup', () => { isDown = false; wrapperElement.classList.remove('active'); });
+            wrapperElement.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - wrapperElement.offsetLeft; const walk = (x - startX) * 2; wrapperElement.scrollLeft = scrollLeft - walk; });
+        };
+        makeWrapperDraggable(gameBoardElements.handCardsWrapper);
+        makeWrapperDraggable(gameBoardElements.playAreaWrapper);
     }
-    
-    // Przewijanie stref z kartami
-    const makeWrapperDraggable = (wrapperElement) => {
-        if(!wrapperElement) return;
-        let isDown = false, startX, scrollLeft;
-        wrapperElement.addEventListener('mousedown', (e) => { isDown = true; wrapperElement.classList.add('active'); startX = e.pageX - wrapperElement.offsetLeft; scrollLeft = wrapperElement.scrollLeft; });
-        wrapperElement.addEventListener('mouseleave', () => { isDown = false; wrapperElement.classList.remove('active'); });
-        wrapperElement.addEventListener('mouseup', () => { isDown = false; wrapperElement.classList.remove('active'); });
-        wrapperElement.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - wrapperElement.offsetLeft; const walk = (x - startX) * 2; wrapperElement.scrollLeft = scrollLeft - walk; });
-    };
-    makeWrapperDraggable(gameBoardElements.handCardsWrapper);
-    makeWrapperDraggable(gameBoardElements.playAreaWrapper);
-}
     
     function showScreen(screenId) {
         Object.values(screens).forEach(screen => { if(screen) screen.classList.remove('active'); });
@@ -220,134 +197,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function promptForValue(title, defaultValue = 1) {
-        return new Promise(resolve => {
-            const inputModal = document.getElementById('input-modal');
-            const titleEl = document.getElementById('input-modal-title');
-            const inputEl = document.getElementById('input-modal-input');
-            const okBtn = document.getElementById('input-modal-ok');
-            const cancelBtn = document.getElementById('input-modal-cancel');
-
-            if(!inputModal || !titleEl || !inputEl || !okBtn || !cancelBtn) {
-                console.error("Input modal elements not found in HTML!");
-                return resolve(null);
-            }
-
-            titleEl.textContent = title;
-            inputEl.value = defaultValue;
-
-            inputModal.classList.remove('hidden');
-            inputEl.focus(); // Ustaw focus na polu input
-            inputEl.select(); // Zaznacz całą zawartość
-
-            const cleanupAndResolve = (value) => {
-                inputModal.classList.add('hidden');
-                // Usuwamy listenery poprzez klonowanie, aby uniknąć ich duplikacji
-                okBtn.parentNode.replaceChild(okBtn.cloneNode(true), okBtn);
-                cancelBtn.parentNode.replaceChild(cancelBtn.cloneNode(true), cancelBtn);
-                resolve(value);
-            };
-            
-            const onOk = () => {
-                const value = parseInt(inputEl.value, 10);
-                cleanupAndResolve(isNaN(value) ? null : value);
-            };
-
-            const onCancel = () => {
-                cleanupAndResolve(null);
-            };
-
-            okBtn.addEventListener('click', onOk, { once: true });
-            cancelBtn.addEventListener('click', onCancel, { once: true });
-        });
-    }
-
     function createCardSelector(action, labelText) {
-    if (!debug.selectionContainer) return;
-    const langKey = `name_${currentLang}`;
-
-    // --- KROK 1: Wybór typu karty ---
-    const showTypeSelector = () => {
-        debug.selectionContainer.innerHTML = ''; // Wyczyść kontener
-
+        if (!debug.selectionContainer) return;
+        debug.selectionContainer.innerHTML = '';
         const label = document.createElement('label');
-        label.textContent = 'Najpierw wybierz typ karty:';
+        label.textContent = labelText;
         const select = document.createElement('select');
-
-        // Pobierz unikalne, posortowane typy kart, filtrując te niepotrzebne
-        const cardTypes = [...new Set(
-            gameState.allCards
-                .filter(card => !['Starter', 'Super-Hero', 'Weakness', 'Kick'].includes(card.type))
-                .map(card => card.type)
-        )].sort();
-        
-        cardTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type;
-            select.appendChild(option);
-        });
-
-        const nextButton = document.createElement('button');
-        nextButton.textContent = 'Dalej';
-        nextButton.onclick = () => {
-            // Po wybraniu typu, przejdź do kroku 2
-            showCardSelector(select.value);
-        };
-        
-        const cancelButton = document.createElement('button');
-        cancelButton.textContent = 'Anuluj';
-        cancelButton.onclick = () => { debug.selectionContainer.innerHTML = ''; };
-
-        debug.selectionContainer.append(label, select, nextButton, cancelButton);
-        select.size = Math.min(10, cardTypes.length); // Ustaw widoczny rozmiar listy
-    };
-
-
-    // --- KROK 2: Wybór konkretnej karty ---
-    const showCardSelector = (selectedType) => {
-        debug.selectionContainer.innerHTML = ''; // Wyczyść kontener
-
-        const label = document.createElement('label');
-        label.textContent = labelText; // Użyj oryginalnego tekstu (np. "Dodaj do ręki:")
-        const select = document.createElement('select');
-
-        // Filtruj karty po wybranym typie i posortuj
-        const cardsToDisplay = gameState.allCards
-            .filter(card => card.type === selectedType)
+        let cardsToDisplay = [];
+        const langKey = `name_${currentLang}`;
+        cardsToDisplay = [...new Map(gameState.allCards.map(item => [item.id, item])).values()]
+            .filter(card => !['Starter', 'Super-Hero', 'Weakness'].includes(card.type))
             .sort((a, b) => (a[langKey] || a.name_en).localeCompare(b[langKey] || b.name_en));
-
         cardsToDisplay.forEach(card => {
             const option = document.createElement('option');
             option.value = card.id;
-            option.textContent = card[langKey] || card.name_en;
+            option.textContent = `${card[langKey] || card.name_en} [${card.type}]`;
             select.appendChild(option);
         });
-
         const confirmButton = document.createElement('button');
         confirmButton.textContent = 'Zatwierdź';
-        confirmButton.onclick = () => {
-            if (select.value) handleDebugAction(action, select.value);
-            debug.selectionContainer.innerHTML = '';
-        };
-
-        const backButton = document.createElement('button');
-        backButton.textContent = 'Wróć';
-        backButton.onclick = showTypeSelector; // Wróć do wyboru typu
-
+        confirmButton.onclick = () => { if (select.value) handleDebugAction(action, select.value); debug.selectionContainer.innerHTML = ''; };
         const cancelButton = document.createElement('button');
         cancelButton.textContent = 'Anuluj';
         cancelButton.onclick = () => { debug.selectionContainer.innerHTML = ''; };
-        
-        debug.selectionContainer.append(label, select, confirmButton, backButton, cancelButton);
-        select.size = Math.min(10, cardsToDisplay.length > 0 ? cardsToDisplay.length : 5);
+        debug.selectionContainer.append(label, select, confirmButton, cancelButton);
         select.style.width = 'auto';
-        select.style.minWidth = '250px';
-    };
-
-    // Rozpocznij proces od pokazania selektora typów
-    showTypeSelector();
-}
+        const scrollWidth = select.scrollWidth;
+        select.style.width = `${scrollWidth + 25}px`;
+        select.size = Math.min(10, cardsToDisplay.length > 0 ? cardsToDisplay.length : 5);
+    }
     function handleDebugAction(action, value) {
         let cardData;
         switch(action) {
@@ -426,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.superVillainStack = [];
         gameState.lineUp = new Array(5).fill(null);
         gameState.destroyedPile = [];
-        gameState.player = { superhero: null, deck: [], hand: [], discard: [], playedCards: [], playedCardTypeCounts: new Map(), ongoing: [], gainedCardsThisTurn: [] };
+        gameState.player = { superhero: null, deck: [], hand: [], discard: [], playedCards: [], playedCardTypeCounts: new Map(), ongoing: [] };
     }
     
     function prepareDecks() {
@@ -480,30 +358,25 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         gameState.player.playedCards.push(playedCard);
     }
-    const currentPlays = gameState.player.playedCardTypeCounts.get(playedCard.type) || 0;
-gameState.player.playedCardTypeCounts.set(playedCard.type, currentPlays + 1);
-// UWAGA: details nie jest już potrzebne, bo nowy kod sam pobiera dane z gameState
-// Aktywacja efektów stałych (Lokacji)
-for (const locationCard of gameState.player.ongoing) {
-    // Sprawdzamy, czy karta lokacji ma odpowiednie tagi do przetworzenia
-    if (locationCard.effect_tags && locationCard.effect_tags.some(tag => tag.startsWith('ongoing_triggered_ability'))) {
-        for (const tag of locationCard.effect_tags) {
-             // Przekazujemy tylko zagraną kartę, resztę logiki obsłuży sam efekt
-            await applyCardEffect(tag, gameState, gameState.player, { playedCard });
+    const playsOfThisType = gameState.player.playedCardTypeCounts.get(playedCard.type) || 0;
+    gameState.player.playedCardTypeCounts.set(playedCard.type, playsOfThisType + 1);
+
+    // Aktywacja efektów stałych (Lokacji)
+    for (const locationCard of gameState.player.ongoing) {
+        if (locationCard.instanceId !== playedCard.instanceId) { 
+            for (const tag of locationCard.effect_tags) {
+                await applyCardEffect(tag, gameState, gameState.player, { playedCard, playsOfThisType });
+            }
         }
     }
-}
 
     // Dodanie bazowej mocy
     gameState.currentPower += playedCard.power || 0;
     
     // Uruchomienie efektów własnych zagranej karty
     for (const tag of playedCard.effect_tags) {
-    // IGNORUJ efekty końca tury - zostaną uruchomione w funkcji endTurn()
-    if (!tag.startsWith('eot_effect')) { 
         await applyCardEffect(tag, gameState, gameState.player, {});
     }
-}
 
     // --- NOWA LOGIKA DLA ZDOLNOŚCI SUPERBOHATERA ---
     if (gameState.player.superhero && gameState.player.superhero.id === 'batman') {
@@ -540,63 +413,38 @@ for (const locationCard of gameState.player.ongoing) {
         }
     }
     async function gainCard(player, cardToGain) {
-    console.log(`Player is gaining ${cardToGain.name_en}`);
-    let destination = player.discard;
-
-    // Sprawdź, czy SAMA zdobywana karta ma zdolność (np. Solomon Grundy)
-    if (cardToGain.effect_tags.includes('on_gain_or_buy:may_move_to_deck_top')) {
-        const userConfirmed = await promptConfirmation(`Czy chcesz położyć "${cardToGain.name_pl || cardToGain.name_en}" na wierzchu swojej talii?`);
-        if (userConfirmed) {
-            destination = player.deck;
-        }
-    }
-
-    // Zapisz kartę jako zdobytą w tej turze
-    player.gainedCardsThisTurn.push(cardToGain);
-
-    // Umieść kartę w docelowym miejscu
-    if (destination === player.deck) {
-        destination.unshift(cardToGain);
-    } else {
-        destination.push(cardToGain);
-    }
-}
-    async function endTurn() {
-    if(!gameState.player) return;
-
-    // --- FAZA EFEKTÓW KOŃCA TURY ---
-    console.log("Entering End-of-Turn phase.");
-    const activePlayerCards = [...gameState.player.playedCards, ...gameState.player.ongoing];
-    for (const card of activePlayerCards) {
-        for (const tag of card.effect_tags) {
-            if (tag.startsWith('eot_effect')) {
-                // Przekazujemy kartę, która jest źródłem efektu, do silnika
-                await applyCardEffect(tag, gameState, gameState.player, { cardWithEffect: card });
+        console.log(`Player is gaining ${cardToGain.name_en}`);
+        let destination = player.discard;
+        if (cardToGain.effect_tags.includes('on_gain_or_buy:may_move_to_deck_top')) {
+            const userConfirmed = await promptConfirmation(`Czy chcesz położyć "${cardToGain.name_pl || cardToGain.name_en}" na wierzchu swojej talii?`);
+            if (userConfirmed) {
+                destination = player.deck;
             }
         }
-    }
-
-    // --- FAZA SPRZĄTANIA (CLEAN-UP) ---
-    console.log("Entering Clean-Up phase.");
-    gameState.player.discard.push(...gameState.player.hand);
-    gameState.player.discard.push(...gameState.player.playedCards);
-    gameState.player.hand = [];
-    gameState.player.playedCards = [];
-    gameState.player.playedCardTypeCounts.clear();
-    gameState.player.gainedCardsThisTurn = []; // Wyczyść listę zdobytych kart
-
-    for (let i = 0; i < gameState.lineUp.length; i++) {
-        if (gameState.lineUp[i] === null) {
-            if (gameState.mainDeck.length > 0) {
-                gameState.lineUp[i] = gameState.mainDeck.pop();
-            }
+        if (destination === player.deck) {
+            destination.unshift(cardToGain);
+        } else {
+            destination.push(cardToGain);
         }
     }
-    
-    drawCards(gameState.player, 5);
-    gameState.currentPower = 0;
-    renderGameBoard();
-}
+    function endTurn() {
+        if(!gameState.player) return;
+        gameState.player.discard.push(...gameState.player.hand);
+        gameState.player.discard.push(...gameState.player.playedCards);
+        gameState.player.hand = [];
+        gameState.player.playedCards = [];
+        gameState.player.playedCardTypeCounts.clear();
+        for (let i = 0; i < gameState.lineUp.length; i++) {
+            if (gameState.lineUp[i] === null) {
+                if (gameState.mainDeck.length > 0) {
+                    gameState.lineUp[i] = gameState.mainDeck.pop();
+                }
+            }
+        }
+        drawCards(gameState.player, 5);
+        gameState.currentPower = 0;
+        renderGameBoard();
+    }
     async function applyCardEffect(tag, gameState, player, details = {}) {
         const [effectName, ...params] = tag.split(':');
         if (cardEffects && typeof cardEffects[effectName] === 'function') {
