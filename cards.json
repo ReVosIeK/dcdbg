@@ -78,7 +78,7 @@
     "flavor_pl": "",
     "image_path": "assets/equipment/aquamans_trident.png",
     "power": 2,
-    "effect_tags": ["modify_gain_destination:top_deck_may"]
+    "effect_tags": ["eot_effect:may_move_one_gained_card_this_turn_to_deck_top"]
   },
   {
     "id": "batmobile",
@@ -254,7 +254,7 @@
     "flavor_pl": "",
     "image_path": "assets/hero/dark_knight.png",
     "power": 2,
-"effect_tags": ["on_play_effect:gain_all_type_equipment_from_lineup", "on_play_effect:if_card_played_this_turn_id_catwoman_then_may_move_all_gained_or_bought_cards_this_turn_to_hand"]
+"effect_tags": ["on_play_effect:gain_all_type_equipment_from_lineup", "on_play_effect:register_trigger_on_play_id_catwoman_then_run_effect_dark_knight_combo"]
   },
   {
     "id": "emerald_knight",

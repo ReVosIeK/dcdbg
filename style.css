@@ -482,6 +482,7 @@ input[type='range'] {
 .modal-content {
   position: relative;
   transform: scale(0.95);
+  max-width: 450px;
   transition: transform 0.2s ease;
 }
 
@@ -676,6 +677,46 @@ input[type='range'] {
     font-size: 1.1rem;
     border-radius: 4px;
     text-align: center;
+}
+
+/* --- Style dla modala z kartą i pytaniem --- */
+#card-prompt-area {
+    display: flex;
+    flex-direction: column; /* Ustawia elementy pionowo */
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 15px;
+    background-color: var(--color-surface);
+    border-radius: 6px;
+}
+
+#card-prompt-card-area {
+    display: flex;
+    flex-wrap: wrap; /* Pozwala kartom zawijać się do nowego wiersza */
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+}
+
+#card-prompt-card-area .card {
+    width: 100px; /* Mniejszy rozmiar kart w monicie */
+    height: 140px;
+    flex-shrink: 0;
+    cursor: default;
+}
+
+#card-prompt-card-area .card:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    border-color: var(--color-border);
+}
+
+#card-prompt-text {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    text-align: center; /* Wyśrodkowany tekst */
+    width: 100%;
 }
 
 /* --- SEKCJA ROZMIARÓW SPECJALNYCH --- */

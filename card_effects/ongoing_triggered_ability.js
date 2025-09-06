@@ -1,16 +1,12 @@
-// card_effects/ongoing_triggered_ability.js
-
-cardEffects.ongoing_triggered_ability = (gameState, player, params, engine, details) => {
-    const effectTag = params.join(':');
+cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, details) => {
     const { playedCard } = details;
     if (!playedCard) return;
 
-    // Pobieramy liczbę zagrań tego konkretnego typu karty
     const playsOfThisType = player.playedCardTypeCounts.get(playedCard.type) || 0;
 
     switch (effectTag) {
         case 'on_play_first_equipment_per_turn_draw_1':
-            if (playedCard.type === 'Equipment' && playsOfThisType === 1) { // Sprawdzamy, czy to PIERWSZE zagranie
+            if (playedCard.type === 'Equipment' && playsOfThisType === 1) { 
                 console.log("The Batcave triggered: drawing 1 card.");
                 drawCards(player, 1);
             }
@@ -34,9 +30,7 @@ cardEffects.ongoing_triggered_ability = (gameState, player, params, engine, deta
             }
             break;
         case 'on_play_first_card_per_turn_cost_eq_2_or_3_draw_1':
-            // Ten warunek jest unikalny - nie sprawdza typu, tylko koszt
-            // Musimy sprawdzić ogólną liczbę zagranych kart
-            const totalPlays = Array.from(player.playedCardTypeCounts.values()).reduce((a, b) => a + b, 0);
+            const totalPlays = player.playedCards.length;
             if ((playedCard.cost === 2 || playedCard.cost === 3) && totalPlays === 1) {
                  console.log("Titans Tower triggered: drawing 1 card.");
                  drawCards(player, 1);

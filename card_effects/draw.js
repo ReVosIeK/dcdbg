@@ -1,6 +1,6 @@
-cardEffects.draw = (gameState, player, params, engine) => {
-  const cardsToDraw = parseInt(params[0], 10);
-  if (!isNaN(cardsToDraw)) {
-      drawCards(player, cardsToDraw);
-  }
+cardEffects.draw = (gameState, player, effectTag, engine) => {
+    const cardsToDraw = parseInt(effectTag, 10);
+    if (!isNaN(cardsToDraw)) {
+        drawCards(player, cardsToDraw);
+    }
 };
