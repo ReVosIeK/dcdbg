@@ -108,43 +108,47 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         };
         player.turnTriggers.push(newTrigger);
         console.log('Dark Knight trigger has been set.');
-    // --- POPRAWKA TUTAJ ---
-    } else if (effectTag.startsWith('may_destroy_cards_from_hand_or_discard')) { // Dodano 's' do 'cards'
+    } else if (effectTag.startsWith('may_destroy_cards_from_hand_or_discard')) {
         const validChoices = [...player.hand, ...player.discard];
         if (validChoices.length === 0) return;
-
         let maxCount = 1;
         if (effectTag.includes('_count_le_')) {
             maxCount = parseInt(effectTag.split('_count_le_')[1], 10);
         } else if (effectTag.includes('_count_')) {
             maxCount = parseInt(effectTag.split('_count_')[1], 10);
         }
-        
         const actualMax = Math.min(maxCount, validChoices.length);
-
         const useAbility = await engine.promptConfirmation(`Czy chcesz zniszczyć do ${actualMax} kart z ręki lub stosu kart odrzuconych?`);
         if (!useAbility) return;
-
         const chosenCardIds = await engine.promptPlayerChoice(
             `Wybierz do ${actualMax} kart do zniszczenia:`,
             validChoices,
             { selectionCount: actualMax, isCancellable: true, canSelectLess: true }
         );
-
         if (chosenCardIds && chosenCardIds.length > 0) {
-            const cardsToDestroy = [];
-            
-            chosenCardIds.forEach(id => {
-                const card = validChoices.find(c => c.instanceId === id);
-                if (card) cardsToDestroy.push(card);
-            });
-            
+            const cardsToDestroy = validChoices.filter(card => chosenCardIds.includes(card.instanceId));
             gameState.destroyedPile.push(...cardsToDestroy);
-
             player.hand = player.hand.filter(card => !chosenCardIds.includes(card.instanceId));
             player.discard = player.discard.filter(card => !chosenCardIds.includes(card.instanceId));
-            
             console.log(`Destroyed ${cardsToDestroy.length} card(s).`);
+            engine.renderGameBoard();
+        }
+    } else if (effectTag === 'may_destroy_cards_from_discard_choice_count_le_2') {
+        const validChoices = [...player.discard];
+        if (validChoices.length === 0) return;
+        const maxToDestroy = Math.min(2, validChoices.length);
+        const useAbility = await engine.promptConfirmation(`Czy chcesz zniszczyć do ${maxToDestroy} kart ze swojego stosu kart odrzuconych?`);
+        if (!useAbility) return;
+        const chosenCardIds = await engine.promptPlayerChoice(
+            `Wybierz do ${maxToDestroy} kart do zniszczenia:`,
+            validChoices,
+            { selectionCount: maxToDestroy, isCancellable: true, canSelectLess: true }
+        );
+        if (chosenCardIds && chosenCardIds.length > 0) {
+            const cardsToDestroy = validChoices.filter(card => chosenCardIds.includes(card.instanceId));
+            gameState.destroyedPile.push(...cardsToDestroy);
+            player.discard = player.discard.filter(card => !chosenCardIds.includes(card.instanceId));
+            console.log(`Destroyed ${cardsToDestroy.length} card(s) from discard.`);
             engine.renderGameBoard();
         }
     } else if (effectTag === 'may_gain_card_type_kick_from_kick_stack_to_hand') {
@@ -225,6 +229,69 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         await engine.playCard(cardToPlay, { isTemporary: true });
         gameState.superVillainStack.unshift(svOriginalCard);
         console.log(`${svOriginalCard.name_pl} has been returned to the Super-Villain stack.`);
+    } else if (effectTag === 'player_chooses_even_or_odd_then_reveal_deck_top_1_if_cost_matches_choice_move_to_hand_else_discard') {
+        if (player.deck.length === 0) {
+            await engine.showNotification("Twoja talia jest pusta. Efekt Two-Face nie może zostać użyty.");
+            return;
+        }
+        const choseEven = await engine.promptConfirmation(
+            t('two_face_prompt'),
+            t('two_face_even'),
+            t('two_face_odd')
+        );
+        const topCard = player.deck.pop();
+        const isEven = topCard.cost % 2 === 0;
+        const wasCorrect = (choseEven && isEven) || (!choseEven && !isEven);
+        let message = '';
+        if (wasCorrect) {
+            player.hand.push(topCard);
+            message = `${t('two_face_correct')} "${topCard[`name_${currentLang}`] || topCard.name_en}" (koszt ${topCard.cost}) ${t('two_face_to_hand')}.`;
+        } else {
+            player.discard.push(topCard);
+            message = `${t('two_face_incorrect')} "${topCard[`name_${currentLang}`] || topCard.name_en}" (koszt ${topCard.cost}) ${t('two_face_to_discard')}.`;
+        }
+        await engine.promptWithCard(message, topCard, [{ text: 'OK', value: true }]);
+    } else if (effectTag === 'choice_either_repeatable_action_spend_3_power_buy_blind_main_deck_top_1_or_gain_1_power') {
+        const useSpecialAbility = await engine.promptConfirmation(
+            t('riddler_initial_prompt'),
+            t('riddler_special_ability'),
+            t('riddler_gain_power')
+        );
+        if (!useSpecialAbility) {
+            gameState.currentPower += 1;
+            console.log('Riddler adds +1 Power.');
+        } else {
+            let continueLoop = true;
+            while (continueLoop) {
+                if (gameState.mainDeck.length === 0) {
+                    await engine.showNotification(t('riddler_deck_empty'));
+                    continueLoop = false;
+                    break;
+                }
+                if (gameState.currentPower < 3) {
+                    await engine.showNotification(t('riddler_no_power'));
+                    continueLoop = false;
+                    break;
+                }
+                const topCard = gameState.mainDeck[gameState.mainDeck.length - 1];
+                const buyCard = await engine.promptWithCard(
+                    `${t('riddler_buy_prompt_start')} ${gameState.currentPower} Mocy. ${t('riddler_buy_prompt_end')}`,
+                    topCard,
+                    [
+                        { text: t('riddler_buy_confirm'), value: true },
+                        { text: t('riddler_buy_cancel'), value: false, isSecondary: true }
+                    ]
+                );
+                if (buyCard) {
+                    gameState.currentPower -= 3;
+                    const gainedCard = gameState.mainDeck.pop();
+                    await engine.gainCard(player, gainedCard);
+                    engine.renderGameBoard();
+                } else {
+                    continueLoop = false;
+                }
+            }
+        }
     } else {
         console.warn(`Unknown on_play_effect tag: ${effectTag}`);
     }

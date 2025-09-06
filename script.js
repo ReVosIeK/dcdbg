@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const screens = { start: document.getElementById('start-screen'), mainMenu: document.getElementById('main-menu-screen'), settings: document.getElementById('settings-screen'), game: document.getElementById('game-container') };
     const buttons = { play: document.getElementById('play-button'), singlePlayer: document.getElementById('single-player-button'), multiplayer: document.getElementById('multiplayer-button'), settings: document.getElementById('settings-button'), backToMenu: document.getElementById('back-to-menu-button'), endTurn: document.getElementById('end-turn-button') };
     const gameBoardElements = { playerHand: document.getElementById('player-hand-container'), handCardsWrapper: document.getElementById('hand-cards-wrapper'), lineUp: document.getElementById('line-up-container'), playArea: document.getElementById('play-area-container'), playAreaWrapper: document.getElementById('play-area-wrapper'), mainDeck: document.getElementById('main-deck-container'), playerDeck: document.getElementById('player-deck-container'), playerDiscard: document.getElementById('discard-pile-container'), locations: document.getElementById('locations-container'), destroyed: document.getElementById('destroyed-pile-container'), kickStack: document.getElementById('kick-stack-container'), weaknessStack: document.getElementById('weakness-stack-container'), superVillainStack: document.getElementById('super-villain-stack-container'), superheroArea: document.getElementById('superhero-card-area'), powerValue: document.getElementById('power-value'), };
-    const debug = { toggleButton: document.getElementById('debug-toggle-button'), closeButton: document.getElementById('debug-close-button'), panel: document.getElementById('debug-panel'), powerAdd: document.getElementById('debug-power-add'), powerRemove: document.getElementById('debug-power-remove'), drawCard: document.getElementById('debug-draw-card'), endGame: document.getElementById('debug-end-game'), addToHandBtn: document.getElementById('debug-add-to-hand-btn'), addToLineupBtn: document.getElementById('debug-add-to-lineup-btn'), destroyCardBtn: document.getElementById('debug-destroy-card-btn'), selectionContainer: document.getElementById('debug-selection-container'),browseStacksBtn: document.getElementById('debug-browse-stacks-btn') };
+    const debug = { toggleButton: document.getElementById('debug-toggle-button'), closeButton: document.getElementById('debug-close-button'), panel: document.getElementById('debug-panel'), powerAdd: document.getElementById('debug-power-add'), powerRemove: document.getElementById('debug-power-remove'), drawCard: document.getElementById('debug-draw-card'), endGame: document.getElementById('debug-end-game'), addToHandBtn: document.getElementById('debug-add-to-hand-btn'), addToLineupBtn: document.getElementById('debug-add-to-lineup-btn'), destroyCardBtn: document.getElementById('debug-destroy-card-btn'), selectionContainer: document.getElementById('debug-selection-container'), browseStacksBtn: document.getElementById('debug-browse-stacks-btn'), setSpecialBtn: document.getElementById('debug-set-special-btn') };
     const cardInspectorModal = document.getElementById('card-inspector-modal');
     const cardInspectorImage = cardInspectorModal?.querySelector('img');
     const closeModalButton = cardInspectorModal?.querySelector('.close-button');
@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- STAN GRY I USTAWIENIA ---
     let gameState = {};
+    let settingsState = {
+        showPolishTooltips: false
+    };
 
     async function init() {
         setupEventListeners();
@@ -43,6 +46,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupEventListeners() {
         const languageSelect = document.getElementById('language-select');
         const languageSelectIngame = document.getElementById('language-select-ingame');
+
+        const polishToggle = document.getElementById('polish-descriptions-toggle');
+        const polishToggleIngame = document.getElementById('polish-descriptions-toggle-ingame');
+
+        // Listener dla przełącznika w menu głównym
+        if(polishToggle) polishToggle.addEventListener('change', (e) => {
+            settingsState.showPolishTooltips = e.target.checked;
+            if(polishToggleIngame) polishToggleIngame.checked = e.target.checked;
+        });
+
+        // Listener dla przełącznika w grze
+        if(polishToggleIngame) polishToggleIngame.addEventListener('change', (e) => {
+            settingsState.showPolishTooltips = e.target.checked;
+            if(polishToggle) polishToggle.checked = e.target.checked;
+        });
 
         if(buttons.play) buttons.play.addEventListener('click', () => showScreen('mainMenu'));
         if(buttons.settings) buttons.settings.addEventListener('click', () => showScreen('settings'));
@@ -79,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(debug.toggleButton) debug.toggleButton.addEventListener('click', () => { debug.panel.classList.toggle('hidden'); debug.selectionContainer.innerHTML = ''; });
         if(debug.closeButton) debug.closeButton.addEventListener('click', () => { debug.panel.classList.add('hidden'); debug.selectionContainer.innerHTML = ''; });
         if(debug.browseStacksBtn) debug.browseStacksBtn.addEventListener('click', () => showStackSelector());
+        if(debug.setSpecialBtn) debug.setSpecialBtn.addEventListener('click', () => createSpecialCardSetter());
         
         if(debug.powerAdd) debug.powerAdd.addEventListener('click', async () => {
             if (!gameState.player) return;
@@ -161,14 +180,32 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const cardElement = event.target.closest('.card');
         if (!cardElement) return;
+        
         const instanceId = cardElement.dataset.instanceId;
         if (!instanceId) return;
+        
         const cardData = findCardByInstanceId(instanceId);
-        if (cardData && cardData.image_path) {
-            cardInspectorImage.src = cardData.image_path;
-            cardInspectorModal.classList.remove('hidden');
+        if (!cardData || !cardData.image_path) return;
+
+        // Pobierz elementy z nowego modala
+        const inspectorImage = document.getElementById('inspector-image');
+        const descriptionPanel = document.getElementById('inspector-description-panel');
+        const descriptionText = document.getElementById('inspector-description-text');
+
+        // Ustaw obrazek karty
+        inspectorImage.src = cardData.image_path;
+
+        // Sprawdź ustawienie i czy istnieje polski opis
+        if (settingsState.showPolishTooltips && cardData.ability_pl && cardData.ability_pl.trim() !== "") {
+            descriptionText.innerHTML = cardData.ability_pl; // Użyj innerHTML dla tagów <br>
+            descriptionPanel.classList.remove('hidden');
+        } else {
+            descriptionPanel.classList.add('hidden'); // Ukryj panel, jeśli opcja jest wyłączona lub brak opisu
         }
+
+        cardInspectorModal.classList.remove('hidden');
     }
+
     function hideInspector() {
         if(cardInspectorModal) cardInspectorModal.classList.add('hidden');
     }
@@ -379,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
             label.textContent = 'Najpierw wybierz typ karty:';
             const select = document.createElement('select');
 
-            const cardTypes = ['Equipment', 'Hero', 'Location', 'Super Power', 'Villain', 'Others'].sort();
+            const cardTypes = ['Equipment', 'Hero', 'Location', 'Super Power', 'Villain', 'Super Villain', 'Others'].sort();
             
             cardTypes.forEach(type => {
                 const option = document.createElement('option');
@@ -559,7 +596,71 @@ document.addEventListener('DOMContentLoaded', () => {
         debug.selectionContainer.append(label, select, confirmButton, cancelButton);
     }
 
-    function startGame() {
+    function createSpecialCardSetter() {
+        const langKey = `name_${currentLang}`;
+        debug.selectionContainer.innerHTML = '';
+
+        // Krok 1: Wybierz, co chcesz ustawić (SV czy SH)
+        const label = document.createElement('label');
+        label.textContent = 'Wybierz, którą kartę specjalną chcesz ustawić:';
+        const select = document.createElement('select');
+        select.innerHTML = `
+            <option value="Super-Villain">${t('set_sv_prompt')}</option>
+            <option value="Super-Hero">${t('set_sh_prompt')}</option>
+        `;
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Dalej';
+        nextButton.onclick = () => {
+            const selectedType = select.value;
+
+            // Krok 2: Wybierz konkretną kartę danego typu
+            debug.selectionContainer.innerHTML = '';
+            const cardLabel = document.createElement('label');
+            cardLabel.textContent = `Wybierz kartę typu ${selectedType}:`;
+            const cardSelect = document.createElement('select');
+
+            const cardsToDisplay = gameState.allCards
+                .filter(card => card.type === selectedType)
+                .sort((a, b) => (a[langKey] || a.name_en).localeCompare(b[langKey] || b.name_en));
+
+            cardsToDisplay.forEach(card => {
+                const option = document.createElement('option');
+                option.value = card.id;
+                option.textContent = card[langKey] || card.name_en;
+                cardSelect.appendChild(option);
+            });
+
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = t('confirm');
+            confirmButton.onclick = () => {
+                const cardId = cardSelect.value;
+                const cardData = gameState.allCards.find(c => c.id === cardId);
+                if (cardData) {
+                    const newCardInstance = {...cardData, instanceId: `${cardData.id}_${Date.now()}`};
+                    if (selectedType === 'Super-Villain') {
+                        gameState.superVillainStack.unshift(newCardInstance); // Dodaj na wierzch
+                        console.log(`DEBUG: Set ${newCardInstance.name_en} as the current Super-Villain.`);
+                    } else if (selectedType === 'Super-Hero') {
+                        gameState.player.superhero = newCardInstance;
+                        console.log(`DEBUG: Set ${newCardInstance.name_en} as the current Superhero.`);
+                    }
+                    renderGameBoard();
+                }
+                debug.selectionContainer.innerHTML = '';
+            };
+
+            const backButton = document.createElement('button');
+            backButton.textContent = t('back_to_menu');
+            backButton.onclick = createSpecialCardSetter; // Wróć do poprzedniego wyboru
+
+            debug.selectionContainer.append(cardLabel, cardSelect, confirmButton, backButton);
+        };
+
+        debug.selectionContainer.append(label, select, nextButton);
+    }
+
+    async function startGame() {
         if (uiScaleSlider && gameBoard) { gameBoard.style.transform = `scale(${uiScaleSlider.value})`; }
         console.log("Starting a new game...");
         resetGameState();
@@ -573,6 +674,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameState.lineUp[i] = null;
             }
         }
+        await triggerFirstAppearanceAttack();
+
         renderGameBoard();
     }
     
@@ -586,6 +689,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.lineUp = new Array(5).fill(null);
         gameState.destroyedPile = [];
         gameState.player = { superhero: null, deck: [], hand: [], discard: [], playedCards: [], playedCardTypeCounts: new Map(), ongoing: [], gainedCardsThisTurn: [], turnTriggers: [], borrowedCards: [] };
+        gameState.svDefeatedThisTurn = false;
+        gameState.cardsUnderSuperheroes = [];
     }
     
     function prepareDecks() {
@@ -600,10 +705,23 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.mainDeck = shuffle(gameState.mainDeck);
         gameState.kickStack = createSpecialStack('kick');
         gameState.weaknessStack = createSpecialStack('weakness');
-        const superVillains = gameState.allCards.filter(c => c.type === 'Super-Villain');
-        gameState.superVillainStack = shuffle(superVillains.map(sv => ({...sv, instanceId: `${sv.id}_0`})));
+
+        // --- NOWA LOGIKA TWORZENIA TALII SUPER-ZŁOCZYŃCÓW ---
+        const allSuperVillains = gameState.allCards.filter(c => c.type === 'Super-Villain');
+        const rasAlGhul = allSuperVillains.find(c => c.id === 'ras_al_ghul');
+        let otherSuperVillains = allSuperVillains.filter(c => c.id !== 'ras_al_ghul');
+        
+        otherSuperVillains = shuffle(otherSuperVillains.map(sv => ({...sv, instanceId: `${sv.id}_0`})));
+
+        gameState.superVillainStack = otherSuperVillains;
+        if (rasAlGhul) {
+            gameState.superVillainStack.push({...rasAlGhul, instanceId: `${rasAlGhul.id}_0`}); // Ra's al Ghul idzie na spód potasowanej talii
+        }
+        gameState.superVillainStack.reverse(); // Odwracamy talię, aby Ra's al Ghul był na wierzchu
+
         return true;
     }
+
     function createSpecialStack(cardId) {
         const cardData = gameState.allCards.find(c => c.id === cardId);
         if (!cardData) return [];
@@ -627,7 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function playCard(cardToPlay, options = {}) {
         const isTemporary = options.isTemporary || false;
 
-        // Karta trafia do strefy gry tylko, jeśli nie jest "tymczasowa"
         if (!isTemporary) {
             if (cardToPlay.type === 'Location') {
                 gameState.player.ongoing.push(cardToPlay);
@@ -635,9 +752,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameState.player.playedCards.push(cardToPlay);
             }
         }
-        
+
         const currentPlays = gameState.player.playedCardTypeCounts.get(cardToPlay.type) || 0;
         gameState.player.playedCardTypeCounts.set(cardToPlay.type, currentPlays + 1);
+
+        // Przywracamy dodawanie mocy bazowej
+        gameState.currentPower += cardToPlay.power || 0;
 
         for (const locationCard of gameState.player.ongoing) {
             if (locationCard.effect_tags && locationCard.effect_tags.some(tag => tag.startsWith('ongoing_triggered_ability'))) {
@@ -646,22 +766,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        
+
         for (const tag of cardToPlay.effect_tags) {
             if (tag.startsWith('on_play_effect')) { 
                 await applyCardEffect(tag, gameState, gameState.player, {});
             }
         }
-        
+
         for (const tag of cardToPlay.effect_tags) {
             const effectName = tag.split(':')[0];
             if (effectName !== 'on_play_effect' && effectName !== 'eot_effect') {
                 await applyCardEffect(tag, gameState, gameState.player, {});
             }
         }
-        
-        recalculatePower();
-        
+
         await checkTurnTriggers(cardToPlay);
     }
 
@@ -673,7 +791,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cardIndex === -1) return;
 
         const [playedCard] = gameState.player.hand.splice(cardIndex, 1);
-        
+
+        // Zdolność Batmana musi być sprawdzona tutaj, przed zagraniem
+        if (gameState.player.superhero && gameState.player.superhero.id === 'batman') {
+            if (playedCard.type === 'Equipment') {
+                console.log("Batman's ability triggered: +1 Power for Equipment.");
+                gameState.currentPower += 1;
+            }
+        }
+
         await playCard(playedCard);
 
         renderGameBoard();
@@ -705,15 +831,33 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function handleSuperVillainStackClick() {
         if (gameState.superVillainStack.length === 0) return;
-        
+
         const superVillain = gameState.superVillainStack[0];
         const effectiveCost = Math.max(0, superVillain.cost - (gameState.superVillainCostModifier || 0));
 
         if (gameState.currentPower >= effectiveCost) {
+            // --- NOWA LOGIKA: ZWROT KART PRZED POKONANIEM ---
+            const cardsToReturn = gameState.cardsUnderSuperheroes.filter(data => data.tiedToVillainId === superVillain.id);
+            if (cardsToReturn.length > 0) {
+                for (const data of cardsToReturn) {
+                    // W grze solo zwracamy karty tylko aktywnemu graczowi
+                    gameState.player.deck.unshift(data.card); // Połóż na wierzchu talii
+                    await engine.promptWithCard(
+                        `Pokonałeś ${superVillain.name_pl}! Odzyskujesz tę kartę. Zostaje ona umieszczona na wierzchu Twojej talii.`,
+                        data.card,
+                        [{ text: 'OK', value: true }]
+                    );
+                }
+                // Usuń zwrócone karty z globalnego stanu
+                gameState.cardsUnderSuperheroes = gameState.cardsUnderSuperheroes.filter(data => data.tiedToVillainId !== superVillain.id);
+            }
+
             gameState.currentPower -= effectiveCost;
             const defeatedVillain = gameState.superVillainStack.shift();
             await gainCard(gameState.player, defeatedVillain);
-            
+
+            gameState.svDefeatedThisTurn = true;
+
             renderGameBoard();
         }
     }
@@ -851,7 +995,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- FAZA ZWROTU KART (RETURN) ---
-        // POPRAWKA: Używamy gameState.player zamiast player
         if (gameState.player.borrowedCards.length > 0) {
             console.log("Returning borrowed cards to the Line-Up.");
             gameState.player.borrowedCards.forEach(borrowed => {
@@ -868,16 +1011,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- FAZA SPRZĄTANIA (CLEAN-UP) ---
         console.log("Entering Clean-Up phase.");
+        const cardsWithCleanup = [];
+        const regularPlayedCards = [];
+        gameState.player.playedCards.forEach(card => {
+            if (card.effect_tags.some(tag => tag.startsWith('cleanup_effect'))) {
+                cardsWithCleanup.push(card);
+            } else {
+                regularPlayedCards.push(card);
+            }
+        });
+        for (const card of cardsWithCleanup) {
+            for (const tag of card.effect_tags) {
+                if (tag.startsWith('cleanup_effect')) {
+                    await applyCardEffect(tag, gameState, gameState.player, { cardWithEffect: card });
+                }
+            }
+        }
         gameState.player.discard.push(...gameState.player.hand);
-        gameState.player.discard.push(...gameState.player.playedCards);
+        gameState.player.discard.push(...regularPlayedCards);
         gameState.player.hand = [];
         gameState.player.playedCards = [];
         gameState.player.playedCardTypeCounts.clear();
         gameState.player.gainedCardsThisTurn = [];
         gameState.superVillainCostModifier = 0;
         gameState.player.turnTriggers = [];
-        gameState.player.borrowedCards = []; // Czyścimy tablicę pożyczonych kart
+        gameState.player.borrowedCards = [];
 
+        // --- FAZA UZUPEŁNIANIA (REFILL) ---
         for (let i = 0; i < gameState.lineUp.length; i++) {
             if (gameState.lineUp[i] === null) {
                 if (gameState.mainDeck.length > 0) {
@@ -886,8 +1046,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        // --- FAZA DOBIERANIA (DRAW) ---
         drawCards(gameState.player, 5);
         gameState.currentPower = 0;
+
+        // --- NOWA, OSTATECZNA FAZA: ODKRYCIE SUPER-ZŁOCZYŃCY ---
+        if (gameState.svDefeatedThisTurn) {
+            await triggerFirstAppearanceAttack();
+            gameState.svDefeatedThisTurn = false; // Zresetuj flagę
+        }
+        
         renderGameBoard();
     }
     
@@ -923,6 +1091,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 await applyCardEffect(trigger.effectTag, gameState, gameState.player, {});
                 // Usuń trigger, aby nie uruchomił się ponownie
                 gameState.player.turnTriggers = gameState.player.turnTriggers.filter(t => t !== trigger);
+            }
+        }
+    }
+
+    async function triggerFirstAppearanceAttack() {
+        if (gameState.superVillainStack.length > 0) {
+            const newSuperVillain = gameState.superVillainStack[0];
+            const faTag = newSuperVillain.effect_tags.find(tag => tag.startsWith('first_appearance_attack'));
+
+            if (faTag) {
+                console.log("A new Super-Villain is revealed, triggering First Appearance Attack!");
+                // Pokaż graczowi, co się dzieje
+                await showNotification(`Nowy Super-złoczyńca przybywa: ${newSuperVillain.name_pl}!\nJego Atak z Pierwszego Pojawienia zostaje aktywowany!`);
+                await applyCardEffect(faTag, gameState, gameState.player, { revealedCard: newSuperVillain });
             }
         }
     }

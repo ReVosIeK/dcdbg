@@ -22,6 +22,10 @@
         <h2 class="menu-title" data-i18n-key="settings">Ustawienia</h2>
         <div class="setting-item"><label for="language-select" data-i18n-key="language">Język:</label><select id="language-select"><option value="pl">Polski</option><option value="en">English</option></select></div>
         <div class="setting-item"><label for="ui-scale-slider" data-i18n-key="ui_scaling">Skalowanie interfejsu:</label><input type="range" id="ui-scale-slider" min="0.8" max="1.2" step="0.1" value="1"></div>
+        <div class="setting-item">
+            <label for="polish-descriptions-toggle" data-i18n-key="polish_descriptions_label">(Tylko PC) Polskie opisy kart:</label>
+            <input type="checkbox" id="polish-descriptions-toggle">
+        </div>
         <button id="back-to-menu-button" class="btn" data-i18n-key="back_to_menu">Powrót</button>
     </div>
 
@@ -76,13 +80,26 @@
             <button id="debug-add-to-hand-btn" data-i18n-key="debug_add_to_hand">Dodaj do Ręki</button>
             <button id="debug-add-to-lineup-btn" data-i18n-key="debug_add_to_lineup">Dodaj do Line-Up</button>
             <button id="debug-destroy-card-btn" data-i18n-key="debug_destroy_card">Zniszcz Kartę</button>
-            <button id="debug-browse-stacks-btn" data-i18n-key="debug_browse_stacks">Przeglądaj Stosy</button>
         </div>
         <div id="debug-selection-container" class="debug-controls"></div>
+        <div class="debug-controls">
+    <button id="debug-browse-stacks-btn" data-i18n-key="debug_browse_stacks">Przeglądaj Stosy</button>
+        </div>
+
+        <div class="debug-controls">
+            <button id="debug-set-special-btn" data-i18n-key="debug_set_special">Ustaw Karty Specjalne</button>
+        </div>
     </div>
 
     <div id="card-inspector-modal" class="hidden modal-overlay">
-        <div class="modal-content"><button class="close-button">&times;</button><img src="" alt="Card Inspector"></div>
+        <div class="modal-content inspector-content">
+            <div id="inspector-description-panel" class="hidden">
+                <h4 data-i18n-key="polish_ability_header">Zdolność (PL)</h4>
+                <p id="inspector-description-text"></p>
+            </div>
+            <img src="" alt="Card Inspector" id="inspector-image">
+            <button class="close-button">&times;</button>
+        </div>
     </div>
     
     <div id="ingame-settings-modal" class="hidden modal-overlay">
@@ -91,6 +108,10 @@
             <h2 class="menu-title" data-i18n-key="settings">Ustawienia</h2>
             <div class="setting-item"><label for="language-select-ingame" data-i18n-key="language">Język:</label><select id="language-select-ingame"><option value="pl">Polski</option><option value="en">English</option></select></div>
             <div class="setting-item"><label for="ui-scale-slider-ingame" data-i18n-key="ui_scaling">Skalowanie interfejsu:</label><input type="range" id="ui-scale-slider-ingame" min="0.8" max="1.2" step="0.05" value="0.9"></div>
+            <div class="setting-item">
+                <label for="polish-descriptions-toggle-ingame" data-i18n-key="polish_descriptions_label">(Tylko PC) Polskie opisy kart:</label>
+                <input type="checkbox" id="polish-descriptions-toggle-ingame">
+            </div>
         </div>
     </div>
 
@@ -122,12 +143,10 @@
         <div class="modal-content choice-modal" style="width: auto;">
             <h3 id="card-prompt-title">Tytuł pytania</h3>
             <div id="card-prompt-area">
-                <div id="card-prompt-card-area">
-                    </div>
+                <div id="card-prompt-card-area"></div>
                 <p id="card-prompt-text">Dodatkowy tekst lub opis.</p>
             </div>
-            <div id="card-prompt-buttons" class="choice-modal-buttons">
-                </div>
+            <div id="card-prompt-buttons" class="choice-modal-buttons"></div>
         </div>
     </div>
 
@@ -141,6 +160,8 @@
             </div>
         </div>
     </div>
+    
+    <div id="card-tooltip" class="hidden"></div>
 
     <script src="i18n.js" defer></script>
     <script src="utils.js" defer></script>
@@ -152,7 +173,11 @@
     <script src="card_effects/on_play_effect.js" defer></script>
     <script src="card_effects/then_discard_card.js" defer></script>
     <script src="card_effects/end_of_turn.js" defer></script>
+    <script src="card_effects/cleanup_effect.js" defer></script>
     <script src="card_effects/ongoing_triggered_ability.js" defer></script>
+    <script src="card_effects/cleanup_effect.js" defer></script>
+    <script src="card_effects/first_appearance_attack.js" defer></script> <script src="card_effects/ongoing_triggered_ability.js" defer></script>
     <script src="script.js" defer></script>
+    
 </body>
 </html>
