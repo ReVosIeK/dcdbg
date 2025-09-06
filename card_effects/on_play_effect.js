@@ -101,24 +101,51 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
                 await engine.gainCard(player, card);
             }
         }
-    } else if (effectTag.startsWith('may_destroy_card_from_hand_or_discard')) {
+    } else if (effectTag.startsWith('register_trigger_on_play_id_catwoman')) {
+        const newTrigger = {
+            condition: { on: 'play', id: 'catwoman' },
+            effectTag: 'internal_effect:dark_knight_combo'
+        };
+        player.turnTriggers.push(newTrigger);
+        console.log('Dark Knight trigger has been set.');
+    // --- POPRAWKA TUTAJ ---
+    } else if (effectTag.startsWith('may_destroy_cards_from_hand_or_discard')) { // Dodano 's' do 'cards'
         const validChoices = [...player.hand, ...player.discard];
-        if (validChoices.length > 0) {
-            const chosenCardInstanceIdArr = await engine.promptPlayerChoice('Wybierz kartę do zniszczenia:', validChoices);
-            const chosenCardInstanceId = Array.isArray(chosenCardInstanceIdArr) ? chosenCardInstanceIdArr[0] : chosenCardInstanceIdArr;
-            if (chosenCardInstanceId) {
-                let cardIndex = player.hand.findIndex(c => c.instanceId === chosenCardInstanceId);
-                if (cardIndex !== -1) {
-                    const [destroyedCard] = player.hand.splice(cardIndex, 1);
-                    gameState.destroyedPile.push(destroyedCard);
-                } else {
-                    cardIndex = player.discard.findIndex(c => c.instanceId === chosenCardInstanceId);
-                    if (cardIndex !== -1) {
-                        const [destroyedCard] = player.discard.splice(cardIndex, 1);
-                        gameState.destroyedPile.push(destroyedCard);
-                    }
-                }
-            }
+        if (validChoices.length === 0) return;
+
+        let maxCount = 1;
+        if (effectTag.includes('_count_le_')) {
+            maxCount = parseInt(effectTag.split('_count_le_')[1], 10);
+        } else if (effectTag.includes('_count_')) {
+            maxCount = parseInt(effectTag.split('_count_')[1], 10);
+        }
+        
+        const actualMax = Math.min(maxCount, validChoices.length);
+
+        const useAbility = await engine.promptConfirmation(`Czy chcesz zniszczyć do ${actualMax} kart z ręki lub stosu kart odrzuconych?`);
+        if (!useAbility) return;
+
+        const chosenCardIds = await engine.promptPlayerChoice(
+            `Wybierz do ${actualMax} kart do zniszczenia:`,
+            validChoices,
+            { selectionCount: actualMax, isCancellable: true, canSelectLess: true }
+        );
+
+        if (chosenCardIds && chosenCardIds.length > 0) {
+            const cardsToDestroy = [];
+            
+            chosenCardIds.forEach(id => {
+                const card = validChoices.find(c => c.instanceId === id);
+                if (card) cardsToDestroy.push(card);
+            });
+            
+            gameState.destroyedPile.push(...cardsToDestroy);
+
+            player.hand = player.hand.filter(card => !chosenCardIds.includes(card.instanceId));
+            player.discard = player.discard.filter(card => !chosenCardIds.includes(card.instanceId));
+            
+            console.log(`Destroyed ${cardsToDestroy.length} card(s).`);
+            engine.renderGameBoard();
         }
     } else if (effectTag === 'may_gain_card_type_kick_from_kick_stack_to_hand') {
         if (gameState.kickStack.length > 0) {
@@ -151,18 +178,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
             if (chosenCardInstanceId) {
                 const cardToReplay = validChoices.find(c => c.instanceId === chosenCardInstanceId);
                 if (cardToReplay) {
-                    console.log(`[Clayface] Ponowne zagranie karty: ${cardToReplay.name_en || cardToReplay.id}`);
-                    const playsOfThisType = player.playedCardTypeCounts.get(cardToReplay.type) || 0;
-                    player.playedCardTypeCounts.set(cardToReplay.type, playsOfThisType + 1);
-                    for (const locationCard of player.ongoing) {
-                        if (!locationCard || locationCard.instanceId === cardToReplay.instanceId) continue;
-                        for (const tag of locationCard.effect_tags) {
-                            await engine.applyCardEffect(tag, gameState, player, { playedCard: cardToReplay });
-                        }
-                    }
-                    // Moc z karty i jej efektów zostanie dodana przez recalculatePower po zakończeniu pętli w handlePlayerHandClick
-                    engine.recalculatePower();
-                    engine.renderGameBoard();
+                    console.log(`[Clayface] Replaying card: ${cardToReplay.name_pl}`);
+                    await engine.playCard(cardToReplay, { isTemporary: true });
                 }
             }
         }
@@ -184,35 +201,49 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         } else {
             console.log(`Nth Metal left ${topCard.name_en} on top of the deck.`);
         }
-    } else if (effectTag.startsWith('register_trigger_on_play_id_catwoman')) {
-        const newTrigger = {
-            condition: { on: 'play', id: 'catwoman' },
-            effectTag: 'internal_effect:dark_knight_combo'
-        };
-        player.turnTriggers.push(newTrigger);
-        console.log('Dark Knight trigger has been set.');
+    } else if (effectTag === 'play_card_from_lineup_choice_type_equipment_hero_superpower_then_return_eot') {
+        const validChoices = gameState.lineUp.filter(card => card && ['Equipment', 'Hero', 'Super Power'].includes(card.type));
+        if (validChoices.length === 0) return;
+        const chosenIdArr = await engine.promptPlayerChoice('Wybierz kartę z Line-Upu do zagrania:', validChoices, { selectionCount: 1 });
+        if (!chosenIdArr || chosenIdArr.length === 0) return;
+        const chosenId = chosenIdArr[0];
+        const cardToPlay = validChoices.find(c => c.instanceId === chosenId);
+        const originalIndex = gameState.lineUp.findIndex(c => c && c.instanceId === chosenId);
+        if (cardToPlay && originalIndex !== -1) {
+            console.log(`Emerald Knight borrows ${cardToPlay.name_pl} from Line-Up.`);
+            gameState.lineUp[originalIndex] = null;
+            player.borrowedCards.push({ card: cardToPlay, originalIndex: originalIndex });
+            await engine.playCard(cardToPlay, { isTemporary: true });
+        }
+    } else if (effectTag === 'play_top_card_from_sv_stack_no_fa_attack_then_return_top') {
+        if (gameState.superVillainStack.length === 0) return;
+        const svOriginalCard = gameState.superVillainStack.shift();
+        engine.renderGameBoard();
+        console.log(`J'onn J'onzz is playing ${svOriginalCard.name_pl}...`);
+        const cardToPlay = { ...svOriginalCard };
+        cardToPlay.effect_tags = cardToPlay.effect_tags.filter(tag => !tag.startsWith('first_appearance_attack'));
+        await engine.playCard(cardToPlay, { isTemporary: true });
+        gameState.superVillainStack.unshift(svOriginalCard);
+        console.log(`${svOriginalCard.name_pl} has been returned to the Super-Villain stack.`);
     } else {
         console.warn(`Unknown on_play_effect tag: ${effectTag}`);
     }
 };
 
-// Efekty, które nie są 'on_play_effect' mogą potrzebować osobnych plików lub być wywoływane inaczej
 cardEffects.internal_effect = async (gameState, player, effectTag, engine, details) => {
     if (effectTag === 'dark_knight_combo') {
-    if (player.gainedCardsThisTurn.length > 0) {
-        const useAbility = await engine.promptWithCard(
-            t('catwoman_combo_prompt_text'), // Nowy, prostszy klucz tłumaczenia
-            player.gainedCardsThisTurn,      // Przekazujemy całą tablicę kart!
-            [
-                { text: t('yes'), value: true },
-                { text: t('no'), value: false, isSecondary: true }
-            ]
-        );
-            
+        if (player.gainedCardsThisTurn.length > 0) {
+            const useAbility = await engine.promptWithCard(
+                t('catwoman_combo_prompt_text'),
+                player.gainedCardsThisTurn,
+                [
+                    { text: t('yes'), value: true },
+                    { text: t('no'), value: false, isSecondary: true }
+                ]
+            );
             if (useAbility) {
                 const gainedCardIds = player.gainedCardsThisTurn.map(c => c.instanceId);
                 const cardsToMove = player.discard.filter(c => gainedCardIds.includes(c.instanceId));
-                
                 if(cardsToMove.length > 0) {
                     player.discard = player.discard.filter(c => !gainedCardIds.includes(c.instanceId));
                     player.hand.push(...cardsToMove);

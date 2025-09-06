@@ -42,6 +42,7 @@ const translations = {
         debug_add_to_hand: "Dodaj do Ręki",
         debug_add_to_lineup: "Dodaj do Line-Up",
         debug_destroy_card: "Zniszcz Kartę",
+        debug_browse_stacks: "Przeglądaj Stosy",
 
         // Modale
         are_you_sure: "Czy na pewno?",
@@ -101,6 +102,7 @@ const translations = {
         debug_add_to_hand: "Add to Hand",
         debug_add_to_lineup: "Add to Line-Up",
         debug_destroy_card: "Destroy Card",
+        debug_browse_stacks: "Browse Stacks",
 
         // Modals
         are_you_sure: "Are you sure?",

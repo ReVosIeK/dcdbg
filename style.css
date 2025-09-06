@@ -11,6 +11,10 @@
   --ui-scale: 1;
 }
 
+.hidden {
+    display: none !important;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -682,7 +686,7 @@ input[type='range'] {
 /* --- Style dla modala z kartą i pytaniem --- */
 #card-prompt-area {
     display: flex;
-    flex-direction: column; /* Ustawia elementy pionowo */
+    flex-direction: column;
     align-items: center;
     gap: 15px;
     margin: 15px 0;
@@ -693,14 +697,14 @@ input[type='range'] {
 
 #card-prompt-card-area {
     display: flex;
-    flex-wrap: wrap; /* Pozwala kartom zawijać się do nowego wiersza */
+    flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
     width: 100%;
 }
 
 #card-prompt-card-area .card {
-    width: 100px; /* Mniejszy rozmiar kart w monicie */
+    width: 100px;
     height: 140px;
     flex-shrink: 0;
     cursor: default;
@@ -715,8 +719,13 @@ input[type='range'] {
 #card-prompt-text {
     font-size: 1.1rem;
     line-height: 1.5;
-    text-align: center; /* Wyśrodkowany tekst */
+    text-align: center;
     width: 100%;
+}
+
+.card-list-container p {
+    color: var(--color-text-muted);
+    font-style: italic;
 }
 
 /* --- SEKCJA ROZMIARÓW SPECJALNYCH --- */
