@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function init() {
         setupEventListeners();
         await loadCardData();
-        setLanguage('pl'); // Ustaw język domyślny
+        setLanguage('en');
         showScreen('start');
     }
     
