@@ -171,7 +171,7 @@ function t(key) {
     return translations[currentLang][key] || key;
 }
 
-let currentLang = 'pl';
+let currentLang = 'en';
 
 function setLanguage(lang) {
     if (!translations[lang]) {
