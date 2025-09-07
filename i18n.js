@@ -202,4 +202,15 @@ function setLanguage(lang) {
             el.dataset.zoneName = translation;
         }
     });
+
+    // --- NOWA SEKCJA: Synchronizacja list rozwijanych ---
+    const langSelectMenu = document.getElementById('language-select');
+    const langSelectIngame = document.getElementById('language-select-ingame');
+
+    if (langSelectMenu) {
+        langSelectMenu.value = lang;
+    }
+    if (langSelectIngame) {
+        langSelectIngame.value = lang;
+    }
 }
