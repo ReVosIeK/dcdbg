@@ -78,7 +78,7 @@
     "flavor_pl": "",
     "image_path": "assets/equipment/aquamans_trident.png",
     "power": 2,
-    "effect_tags": ["eot_effect:may_move_one_gained_card_this_turn_to_deck_top"]
+    "effect_tags": ["passive_ability:modify_gain_destination_may_move_to_deck_top"]
   },
   {
     "id": "batmobile",

@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gainedCardsThisTurn: [], 
             turnTriggers: [], 
             borrowedCards: [],
-            turnFlags: {}
+            turnFlags: { aquamanTridentUsed: false }
         };
     }
     
@@ -909,26 +909,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const langKey = `name_${currentLang}`;
         console.log(`Player is gaining ${cardToGain[langKey] || cardToGain.name_en}`);
         let destination = player.discard;
-        let askToTop = false;
 
-        if (cardToGain.id === 'solomon_grundy') {
-            askToTop = true;
+        // Sprawdź efekty, które zawsze mogą się aktywować (nie są jednorazowe na turę)
+        let alwaysAsk = false;
+        if (cardToGain.id === 'solomon_grundy' || 
+        (!gameState.superheroAbilitiesDisabled && player.superheroes.some(h => h.id === 'aquaman') && cardToGain.cost <= 5)) {
+            alwaysAsk = true;
         }
 
-        if (!gameState.superheroAbilitiesDisabled && player.superheroes.some(h => h.id === 'aquaman') && cardToGain.cost <= 5) {
-            askToTop = true;
-        }
-
-        if (askToTop) {
-            const userConfirmed = await promptConfirmation(t('solomon_grundy_prompt').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
+        if (alwaysAsk) {
+            const userConfirmed = await promptConfirmation(t('confirm_place_on_top_deck').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
             if (userConfirmed) {
                 destination = player.deck;
             }
         }
 
-        player.gainedCardsThisTurn.push(cardToGain);
+        // OSOBNO sprawdź efekt Trójzębu, bo jest jednorazowy na turę
+        const allPlayedCards = [...player.playedCards, ...player.ongoing];
+        if (allPlayedCards.some(c => c.id === 'aquamans_trident') && !player.turnFlags.aquamanTridentUsed) {
+            const useTrident = await promptConfirmation(t('aquaman_trident_prompt_each_time').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
+            if (useTrident) {
+                destination = player.deck;
+                player.turnFlags.aquamanTridentUsed = true; // "Zużyj" zdolność na tę turę
+                console.log("Aquaman's Trident ability has been used for this turn.");
+            }
+        }
 
-        // POPRAWKA: Zawsze używamy .push(), aby dodać na koniec (na wierzch)
+        player.gainedCardsThisTurn.push(cardToGain);
         destination.push(cardToGain);
     }
 
