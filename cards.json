@@ -590,7 +590,7 @@
     "flavor_pl": "",
     "image_path": "assets/superPower/heat_vision.png",
     "power": 3,
-    "effect_tags": ["on_play_effect:may_destroy_card_from_hand_or_discard_choice_count_1"]
+    "effect_tags": ["on_play_effect:may_destroy_cards_from_hand_or_discard_choice_count_1"]
   },
   {
     "id": "super_speed",
@@ -910,7 +910,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/ras_al_ghul.png",
     "power": 3,
-    "effect_tags": ["when_played_effect:move_to_bottom_of_deck_at_cleanup"]
+    "effect_tags": ["cleanup_effect:move_this_card_to_bottom_of_deck"]
   },
   {
     "id": "atrocitus",

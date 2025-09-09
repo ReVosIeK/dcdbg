@@ -1,7 +1,5 @@
-// card_effects/conditional_power.js - PRZYWRÓCONA WERSJA
-
 cardEffects.conditional_power = (gameState, player, conditionTag, engine) => {
-    
+    const allPlayedCards = [...player.playedCards, ...player.ongoing];
     if (conditionTag.startsWith('if_player_controls_type_location')) {
         const parts = conditionTag.split('_');
         const powerIfTrue = parseInt(parts[parts.indexOf('then') + 1], 10);
@@ -10,9 +8,7 @@ cardEffects.conditional_power = (gameState, player, conditionTag, engine) => {
         gameState.currentPower += conditionMet ? powerIfTrue : powerIfFalse;
         return;
     }
-
     if (conditionTag.startsWith('if_card_type_played_this_turn')) {
-        const allPlayedCards = [...player.playedCards, ...player.ongoing];
         const parts = conditionTag.split('_');
         const thenIndex = parts.indexOf('then');
         const elseIndex = parts.indexOf('else');
@@ -20,15 +16,13 @@ cardEffects.conditional_power = (gameState, player, conditionTag, engine) => {
         const powerIfTrue = parseInt(parts[thenIndex + 1], 10);
         const powerIfFalse = parseInt(parts[elseIndex + 1], 10);
 
-        // Sprawdzamy karty zagrane DO TEJ PORY
         const conditionMet = typesToCheck.some(type => {
             const formattedType = type === 'superpower' ? 'Super Power' : type.charAt(0).toUpperCase() + type.slice(1);
-            return allPlayedCards.some(card => card.type === formattedType);
+            return allPlayedCards.some(card => card.type === formattedType || (formattedType === 'Super Power' && card.type === 'Kick'));
         });
         gameState.currentPower += conditionMet ? powerIfTrue : powerIfFalse;
         return;
     }
-
     if (conditionTag.startsWith('if_discard_pile_empty')) {
         const parts = conditionTag.split('_');
         const powerIfTrue = parseInt(parts[parts.indexOf('then') + 1], 10);

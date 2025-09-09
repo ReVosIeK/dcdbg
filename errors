@@ -1,0 +1,51 @@
+2. Pierscien Mocy
+    a) Brak angielskiego tłumaczenia
+        "Pierścień Mocy ujawnia: "card_name" (cost x). Otrzymujesz x Mocy."
+    b) Pierścień Mocy zeruje ilość punktów po zagraniu zamiast dodawać
+3. Bat sygnał
+    a) Brak angielskiego tłumaczenia
+        "Wybierz Hero do wzięcia na rękę:"
+4. Chce aby logi konsoli były kasowane po resecie gry i po wyjściu do menu
+5. Dark Knight 
+    a) Nie sprawdza czy w tej samej turze został zagrany Catwoman przez co gdy zostanie zagrane najpierw CAtwoman a później Dark Knight to jego efekt z combo nie działa
+6. J'onn J'onzz
+    a) Błąd po zagraniu karty:
+        "script.js:1080 Effect 'when_played_effect' not found in effects.js
+        applyCardEffect	@	script.js:1080
+        playCard	@	script.js:839
+        cardEffects.on_play_effect	@	on_play_effect.js:232
+        applyCardEffect	@	script.js:1078
+        playCard	@	script.js:839
+        handlePlayerHandClick	@	script.js:855"
+    b) Nie dodało mi Mocy od Ra's al ghul po zagraniu
+7. Mera:
+    a) Kiedy są karty w stosie odrzuconym nie dodało mi +2 Mocy
+    b) Kiedy stos odrzuconych ppusty nie dodało mi +4 Mocy
+8. Robin
+    a) Brak tłumaczenia angielskiego: 
+        "Wybierz Equipment do wzięcia na rękę:"
+9. Heat Vision
+    a) Błąd po zagraniu karty:
+        "Unknown on_play_effect tag: may_destroy_card_from_hand_or_discard_choice_count_1
+        cardEffects.on_play_effect @ on_play_effect.js:318
+        applyCardEffect @ script.js:1078
+        playCard @ script.js:839
+        handlePlayerHandClick @ script.js:855Understand this warning"
+10. Clayface
+    a) Nie działa jego efekt.. Zagrałem "Punch" później "Clayface" i nie dodało mi ponownie mocy
+12. Tłumaczenie angielskie przycisków w panelu deweloperskim:
+    a) w zakładce "Add Power" tekst "Wartość"
+    b) w zakładce "Remove Power" tekst "Wartość"
+    c) przy wymuszeniu końca gry cały tekst w alercie
+    d) w zakładce "Add to Hand" tekst "Najpierw wybierz typ karty:" oraz przycisk "Dalej"
+    e) w zakładce "Add to Line-up" tekst "Najpierw wybierz typ karty:" oraz przycisk "Dalej"
+    f) w zakładce "Destroy Card" tekst "Najpierw wybierz typ karty:" oraz przycisk "Dalej"
+    g) w zakładce "Browse Stacks" tekst "Wybierz stos do przejrzenia:" oraz przycisk "Pokaż"
+        1) tekst "Zawartość: Player Deck"
+    h) w zakładce "Set Special Cards" tekst "Wybierz, którą kartę specjalną chcesz ustawić:" oraz przycisk "Dalej"
+        1) tekst "Wybierz pozycję w talii Super-złoczyńców:", "Pierwsza (na wierzchu)", "Druga od góry"
+        2) tekst "Wybierz kartę typu Super-Hero:"
+13. Riddler
+    a) Brak tłumaczenia przy kupnie karty za +3 Power "You have 50 Mocy. Do you want to spend 3 Power to gain this card?"
+    b) Po Kliknieciu przycisku "Cancel/Anuluj" resetuje Moc
+    c) Po kliknieciu przycisku "+1 Power" resetuje moc i dodaje +1

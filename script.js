@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- SELEKTORY ELEMENTÓW DOM ---
-    const screens = { start: document.getElementById('start-screen'), mainMenu: document.getElementById('main-menu-screen'), settings: document.getElementById('settings-screen'), game: document.getElementById('game-container') };
+    const screens = { start: document.getElementById('start-screen'), mainMenu: document.getElementById('main-menu-screen'), settings: document.getElementById('settings-screen'), game: document.getElementById('game-container'), 'pre-game': document.getElementById('pre-game-modal') };
     const buttons = { play: document.getElementById('play-button'), singlePlayer: document.getElementById('single-player-button'), multiplayer: document.getElementById('multiplayer-button'), settings: document.getElementById('settings-button'), backToMenu: document.getElementById('back-to-menu-button'), endTurn: document.getElementById('end-turn-button') };
     const gameBoardElements = { playerHand: document.getElementById('player-hand-container'), handCardsWrapper: document.getElementById('hand-cards-wrapper'), lineUp: document.getElementById('line-up-container'), playArea: document.getElementById('play-area-container'), playAreaWrapper: document.getElementById('play-area-wrapper'), mainDeck: document.getElementById('main-deck-container'), playerDeck: document.getElementById('player-deck-container'), playerDiscard: document.getElementById('discard-pile-container'), locations: document.getElementById('locations-container'), destroyed: document.getElementById('destroyed-pile-container'), kickStack: document.getElementById('kick-stack-container'), weaknessStack: document.getElementById('weakness-stack-container'), superVillainStack: document.getElementById('super-villain-stack-container'), superheroArea: document.getElementById('superhero-card-area'), powerValue: document.getElementById('power-value'), };
     const debug = { toggleButton: document.getElementById('debug-toggle-button'), closeButton: document.getElementById('debug-close-button'), panel: document.getElementById('debug-panel'), powerAdd: document.getElementById('debug-power-add'), powerRemove: document.getElementById('debug-power-remove'), drawCard: document.getElementById('debug-draw-card'), endGame: document.getElementById('debug-end-game'), addToHandBtn: document.getElementById('debug-add-to-hand-btn'), addToLineupBtn: document.getElementById('debug-add-to-lineup-btn'), destroyCardBtn: document.getElementById('debug-destroy-card-btn'), selectionContainer: document.getElementById('debug-selection-container'), browseStacksBtn: document.getElementById('debug-browse-stacks-btn'), setSpecialBtn: document.getElementById('debug-set-special-btn') };
     const cardInspectorModal = document.getElementById('card-inspector-modal');
-    const cardInspectorImage = cardInspectorModal?.querySelector('img');
     const closeModalButton = cardInspectorModal?.querySelector('.close-button');
     const settingsIngameButton = document.getElementById('settings-ingame-button');
     const resetGameButton = document.getElementById('reset-game-button');
@@ -26,6 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let settingsState = {
         showPolishTooltips: false
     };
+    let temporaryCardContext = [];
+
+    function t(key) {
+        return translations[currentLang][key] || key;
+    }
 
     async function init() {
         setupEventListeners();
@@ -33,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setLanguage('en');
         showScreen('start');
     }
-    
+
     async function loadCardData() {
         try {
             const response = await fetch('cards.json');
@@ -46,58 +50,78 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupEventListeners() {
         const languageSelect = document.getElementById('language-select');
         const languageSelectIngame = document.getElementById('language-select-ingame');
-
         const polishToggle = document.getElementById('polish-descriptions-toggle');
         const polishToggleIngame = document.getElementById('polish-descriptions-toggle-ingame');
-
-        // Listener dla przełącznika w menu głównym
-        if(polishToggle) polishToggle.addEventListener('change', (e) => {
-            settingsState.showPolishTooltips = e.target.checked;
-            if(polishToggleIngame) polishToggleIngame.checked = e.target.checked;
-        });
-
-        // Listener dla przełącznika w grze
-        if(polishToggleIngame) polishToggleIngame.addEventListener('change', (e) => {
-            settingsState.showPolishTooltips = e.target.checked;
-            if(polishToggle) polishToggle.checked = e.target.checked;
-        });
+        const preGameModal = document.getElementById('pre-game-modal');
+        const exitGameButton = document.getElementById('exit-game-button');
 
         if(buttons.play) buttons.play.addEventListener('click', () => showScreen('mainMenu'));
         if(buttons.settings) buttons.settings.addEventListener('click', () => showScreen('settings'));
         if(buttons.backToMenu) buttons.backToMenu.addEventListener('click', () => showScreen('mainMenu'));
-        if(buttons.singlePlayer) buttons.singlePlayer.addEventListener('click', () => { showScreen('game'); startGame(); });
+        
+        if(buttons.singlePlayer) buttons.singlePlayer.addEventListener('click', () => showScreen('pre-game'));
+        
+        if(preGameModal) {
+            document.getElementById('play-one-superhero-btn').addEventListener('click', () => {
+                showScreen('game');
+                startGame({ superheroCount: 1 });
+            });
+            document.getElementById('play-two-superheroes-btn').addEventListener('click', () => {
+                showScreen('game');
+                startGame({ superheroCount: 2 });
+            });
+            document.getElementById('back-to-main-menu-from-pre-game').addEventListener('click', () => showScreen('mainMenu'));
+        }
+
         if(gameBoard) gameBoard.addEventListener('contextmenu', handleCardRightClick);
+        if(choiceModal) choiceModal.addEventListener('contextmenu', handleCardRightClick);
+        
         if(closeModalButton) closeModalButton.addEventListener('click', hideInspector);
         if(cardInspectorModal) cardInspectorModal.addEventListener('click', (e) => { if (e.target === cardInspectorModal) hideInspector(); });
-        if(choiceModal) choiceModal.addEventListener('contextmenu', handleCardRightClick);
         if(gameBoardElements.playerHand) gameBoardElements.playerHand.addEventListener('click', handlePlayerHandClick);
         if(gameBoardElements.lineUp) gameBoardElements.lineUp.addEventListener('click', handleLineUpClick);
         if(gameBoardElements.kickStack) gameBoardElements.kickStack.addEventListener('click', handleKickStackClick);
         if(gameBoardElements.superVillainStack) gameBoardElements.superVillainStack.addEventListener('click', handleSuperVillainStackClick);
         if(buttons.endTurn) buttons.endTurn.addEventListener('click', endTurn);
         
-        // --- NOWE LISTENERY DLA TŁUMACZEŃ ---
-        if(languageSelect) languageSelect.addEventListener('change', (e) => {
-            setLanguage(e.target.value);
-            if (languageSelectIngame) languageSelectIngame.value = e.target.value;
+        if(languageSelect) languageSelect.addEventListener('change', (e) => { setLanguage(e.target.value); });
+        if(languageSelectIngame) languageSelectIngame.addEventListener('change', (e) => { setLanguage(e.target.value); renderGameBoard(); });
+
+        if(polishToggle) polishToggle.addEventListener('change', (e) => {
+            settingsState.showPolishTooltips = e.target.checked;
+            if(polishToggleIngame) polishToggleIngame.checked = e.target.checked;
         });
-        if(languageSelectIngame) languageSelectIngame.addEventListener('change', (e) => {
-            setLanguage(e.target.value);
-            if (languageSelect) languageSelect.value = e.target.value;
-            renderGameBoard(); 
+        if(polishToggleIngame) polishToggleIngame.addEventListener('change', (e) => {
+            settingsState.showPolishTooltips = e.target.checked;
+            if(polishToggle) polishToggle.checked = e.target.checked;
         });
 
         if(settingsIngameButton) settingsIngameButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.remove('hidden'); });
         if(closeIngameSettingsButton) closeIngameSettingsButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
         if(ingameSettingsModal) ingameSettingsModal.addEventListener('click', (e) => { if (e.target === ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
-        if(uiScaleSlider) uiScaleSlider.addEventListener('input', (e) => { if(gameBoard) gameBoard.style.transform = `scale(${e.target.value})`; });
-        if(resetGameButton) resetGameButton.addEventListener('click', () => { if (confirm(t('reset_game_confirm'))) startGame(); });
         
-        // Listenery Panelu Debugowania
+        if(resetGameButton) resetGameButton.addEventListener('click', async () => {
+            const userConfirmed = await promptConfirmation(t('reset_game_confirm'));
+            if (userConfirmed) {
+                console.clear(); // <-- DODANA LINIA
+                startGame({ superheroCount: gameState.player.superheroes.length });
+            }
+        });
+        
+        if(exitGameButton) {
+            exitGameButton.addEventListener('click', async () => {
+                const userConfirmed = await promptConfirmation(t('exit_game_confirm'));
+                if (userConfirmed) {
+                    console.clear(); // <-- DODANA LINIA
+                    showScreen('mainMenu');
+                }
+            });
+        }
+
+        if(uiScaleSlider) uiScaleSlider.addEventListener('input', (e) => { if(gameBoard) gameBoard.style.transform = `scale(${e.target.value})`; });
+        
         if(debug.toggleButton) debug.toggleButton.addEventListener('click', () => { debug.panel.classList.toggle('hidden'); debug.selectionContainer.innerHTML = ''; });
         if(debug.closeButton) debug.closeButton.addEventListener('click', () => { debug.panel.classList.add('hidden'); debug.selectionContainer.innerHTML = ''; });
-        if(debug.browseStacksBtn) debug.browseStacksBtn.addEventListener('click', () => showStackSelector());
-        if(debug.setSpecialBtn) debug.setSpecialBtn.addEventListener('click', () => createSpecialCardSetter());
         
         if(debug.powerAdd) debug.powerAdd.addEventListener('click', async () => {
             if (!gameState.player) return;
@@ -120,11 +144,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if(debug.drawCard) debug.drawCard.addEventListener('click', () => { if (!gameState.player) return; drawCards(gameState.player, 1); renderGameBoard(); });
         if(debug.endGame) debug.endGame.addEventListener('click', () => {
             const score = calculatePlayerScore(gameState.player);
-            alert(`KONIEC GRY (debug)!\n\nTwój ostateczny wynik: ${score} PZ.`);
+            alert(t('debug_end_game_alert').replace('{SCORE}', score));
         });
         if(debug.addToHandBtn) debug.addToHandBtn.addEventListener('click', () => createCardSelector('addToHand', t('add_to_hand_prompt')));
         if(debug.addToLineupBtn) debug.addToLineupBtn.addEventListener('click', () => createCardSelector('addToLineup', t('add_to_lineup_prompt')));
         if(debug.destroyCardBtn) debug.destroyCardBtn.addEventListener('click', () => createCardSelector('destroyCard', t('destroy_card_prompt')));
+        if(debug.browseStacksBtn) debug.browseStacksBtn.addEventListener('click', () => showStackSelector());
+        if(debug.setSpecialBtn) debug.setSpecialBtn.addEventListener('click', () => createSpecialCardSetter());
+        
         if(choiceModalCancel) choiceModalCancel.addEventListener('click', () => choiceModal.classList.add('hidden'));
         
         const debugHeader = debug.panel?.querySelector('h3');
@@ -154,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Przycisk panelu debugowania został WŁĄCZONY.');
             } else {
                 debug.toggleButton.classList.add('hidden');
-                // Jeśli panel był otwarty, również go zamknij
                 debug.panel.classList.add('hidden');
                 console.log('Przycisk panelu debugowania został WYŁĄCZONY.');
             }
@@ -170,12 +196,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function findCardByInstanceId(instanceId) {
         if (!gameState.player) return null;
-        const allCardLocations = [ ...gameState.player.hand, ...gameState.player.discard, ...gameState.player.playedCards, ...gameState.player.deck, ...gameState.lineUp, ...gameState.kickStack, ...gameState.weaknessStack, ...gameState.superVillainStack, ...gameState.destroyedPile, ...gameState.player.ongoing ];
-        if(gameState.player.superhero) {
-            allCardLocations.push(gameState.player.superhero);
-        }
-        return allCardLocations.find(card => card && card.instanceId === instanceId);
+        const allCardLocations = [ ...gameState.player.hand, ...gameState.player.discard, ...gameState.player.playedCards, ...gameState.player.deck, ...gameState.lineUp, ...gameState.kickStack, ...gameState.weaknessStack, ...gameState.superVillainStack, ...gameState.destroyedPile, ...gameState.player.ongoing, ...gameState.player.superheroes, ...temporaryCardContext ];
+        const uniqueCards = [...new Map(allCardLocations.filter(c => c).map(item => [item.instanceId, item])).values()];
+        return uniqueCards.find(card => card && card.instanceId === instanceId);
     }
+
     function handleCardRightClick(event) {
         event.preventDefault();
         const cardElement = event.target.closest('.card');
@@ -187,20 +212,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardData = findCardByInstanceId(instanceId);
         if (!cardData || !cardData.image_path) return;
 
-        // Pobierz elementy z nowego modala
         const inspectorImage = document.getElementById('inspector-image');
         const descriptionPanel = document.getElementById('inspector-description-panel');
         const descriptionText = document.getElementById('inspector-description-text');
 
-        // Ustaw obrazek karty
+        if (!inspectorImage || !descriptionPanel || !descriptionText) return;
+
         inspectorImage.src = cardData.image_path;
 
-        // Sprawdź ustawienie i czy istnieje polski opis
         if (settingsState.showPolishTooltips && cardData.ability_pl && cardData.ability_pl.trim() !== "") {
-            descriptionText.innerHTML = cardData.ability_pl; // Użyj innerHTML dla tagów <br>
+            descriptionText.innerHTML = cardData.ability_pl;
             descriptionPanel.classList.remove('hidden');
         } else {
-            descriptionPanel.classList.add('hidden'); // Ukryj panel, jeśli opcja jest wyłączona lub brak opisu
+            descriptionPanel.classList.add('hidden');
         }
 
         cardInspectorModal.classList.remove('hidden');
@@ -211,19 +235,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function promptPlayerChoice(title, cards, options = {}) {
-        const { selectionCount = 1, isCancellable = true, canSelectLess = false } = options;
+        const { selectionCount = 1, isCancellable = true, canSelectLess = false, modalClass = '' } = options;
+        
+        let selectedIds = [];
+
+        const updateTitle = () => {
+            const selectionInfo = selectionCount > 1 ? `(${selectedIds.length}/${selectionCount})` : '';
+            choiceModalTitle.textContent = `${title} ${selectionInfo}`;
+        };
+
         return new Promise(resolve => {
             if (!choiceModal) return resolve(isCancellable ? null : []);
             
-            let selectedIds = [];
+            temporaryCardContext = cards;
+            if (modalClass) choiceModal.classList.add(modalClass);
+
             const confirmBtn = document.getElementById('choice-modal-confirm');
             const cancelBtn = document.getElementById('choice-modal-cancel');
 
-            const updateTitle = () => {
-                const selectionInfo = selectionCount > 1 ? `(${selectedIds.length}/${selectionCount})` : '';
-                choiceModalTitle.textContent = `${title} ${selectionInfo}`;
-            };
             const cleanupAndResolve = (value) => {
+                temporaryCardContext = [];
+                if (modalClass) choiceModal.classList.remove(modalClass);
                 choiceModal.classList.add('hidden');
                 resolve(value);
             };
@@ -264,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             choiceModal.classList.remove('hidden');
         });
     }
+
     function promptConfirmation(text, yesText = t('yes'), noText = t('no')) {
         return new Promise(resolve => {
             if(!confirmationModal) { console.error("Confirmation modal not found in HTML!"); return resolve(false); }
@@ -295,35 +328,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputEl = document.getElementById('input-modal-input');
             const okBtn = document.getElementById('input-modal-ok');
             const cancelBtn = document.getElementById('input-modal-cancel');
-
-            if(!inputModal || !titleEl || !inputEl || !okBtn || !cancelBtn) {
-                console.error("Input modal elements not found in HTML!");
-                return resolve(null);
-            }
-
+            if(!inputModal || !titleEl || !inputEl || !okBtn || !cancelBtn) { return resolve(null); }
             titleEl.textContent = title;
             inputEl.value = defaultValue;
-
             inputModal.classList.remove('hidden');
             inputEl.focus();
             inputEl.select();
-
             const cleanupAndResolve = (value) => {
                 inputModal.classList.add('hidden');
                 okBtn.parentNode.replaceChild(okBtn.cloneNode(true), okBtn);
                 cancelBtn.parentNode.replaceChild(cancelBtn.cloneNode(true), cancelBtn);
                 resolve(value);
             };
-            
             const onOk = () => {
                 const value = parseInt(inputEl.value, 10);
                 cleanupAndResolve(isNaN(value) ? null : value);
             };
-
             const onCancel = () => {
                 cleanupAndResolve(null);
             };
-
             okBtn.addEventListener('click', onOk, { once: true });
             cancelBtn.addEventListener('click', onCancel, { once: true });
         });
@@ -331,27 +354,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showNotification(text, buttonText = 'OK') {
         return new Promise(resolve => {
-            if(!confirmationModal) {
-                console.error("Confirmation modal not found!");
-                return resolve();
-            }
+            if(!confirmationModal) { return resolve(); }
             confirmationText.textContent = text;
             const yesBtn = document.getElementById('confirm-yes-btn');
             const noBtn = document.getElementById('confirm-no-btn');
-            
             yesBtn.textContent = buttonText;
             noBtn.style.display = 'none';
-
             confirmationModal.classList.remove('hidden');
-
             const cleanupAndResolve = () => {
                 confirmationModal.classList.add('hidden');
                 noBtn.style.display = 'inline-block';
                 resolve();
             };
-
             const onOk = () => cleanupAndResolve();
-            
             const newYesBtn = yesBtn.cloneNode(true);
             yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
             newYesBtn.addEventListener('click', onOk, { once: true });
@@ -365,31 +380,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardArea = document.getElementById('card-prompt-card-area');
             const textEl = document.getElementById('card-prompt-text');
             const buttonsArea = document.getElementById('card-prompt-buttons');
-
-            if(!modal || !cardArea || !textEl || !buttonsArea) {
-                console.error("Card Prompt Modal elements not found!");
-                return resolve(null);
-            }
-
-            // Ustaw tekst i zawartość
+            if(!modal || !cardArea || !textEl || !buttonsArea) { return resolve(null); }
             titleEl.textContent = t('decision_title') || "Podejmij decyzję:";
             textEl.textContent = text;
             cardArea.innerHTML = '';
             buttonsArea.innerHTML = '';
-
-            // NOWA LOGIKA: Sprawdź, czy 'cards' to tablica, jeśli nie, zrób z niej tablicę
             const cardList = Array.isArray(cards) ? cards : [cards];
-
-            // Wyświetl wszystkie karty z listy
             cardList.forEach(card => {
                 cardArea.appendChild(createCardElement(card));
             });
-
             const cleanupAndResolve = (value) => {
                 modal.classList.add('hidden');
                 resolve(value);
             };
-
             buttons.forEach(buttonInfo => {
                 const button = document.createElement('button');
                 button.textContent = buttonInfo.text;
@@ -400,7 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.addEventListener('click', () => cleanupAndResolve(buttonInfo.value), { once: true });
                 buttonsArea.appendChild(button);
             });
-
             modal.classList.remove('hidden');
         });
     }
@@ -408,46 +410,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function createCardSelector(action, labelText) {
         if (!debug.selectionContainer) return;
         const langKey = `name_${currentLang}`;
-
-        // --- KROK 1: Wybór typu karty ---
         const showTypeSelector = () => {
             debug.selectionContainer.innerHTML = '';
             const label = document.createElement('label');
-            label.textContent = 'Najpierw wybierz typ karty:';
+            label.textContent = t('debug_choose_card_type_first');
             const select = document.createElement('select');
-
-            const cardTypes = ['Equipment', 'Hero', 'Location', 'Super Power', 'Villain', 'Super Villain', 'Others'].sort();
-            
+            const cardTypes = ['Equipment', 'Hero', 'Location', 'Super Power', 'Villain', 'Super-Villain', 'Others'].sort();
             cardTypes.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type;
                 option.textContent = (type === 'Super Power') ? 'Super Power / Kick' : type;
                 select.appendChild(option);
             });
-
             const nextButton = document.createElement('button');
-            nextButton.textContent = 'Dalej';
-            nextButton.onclick = () => {
-                showCardSelector(select.value);
-            };
-            
+            nextButton.textContent = t('debug_next_button');
+            nextButton.onclick = () => { showCardSelector(select.value); };
             const cancelButton = document.createElement('button');
             cancelButton.textContent = t('cancel');
             cancelButton.onclick = () => { debug.selectionContainer.innerHTML = ''; };
-
             debug.selectionContainer.append(label, select, nextButton, cancelButton);
             select.size = Math.min(10, cardTypes.length);
         };
-
-
         const showCardSelector = (selectedType) => {
             debug.selectionContainer.innerHTML = '';
             const label = document.createElement('label');
             label.textContent = labelText;
             const select = document.createElement('select');
-            
             let cardsToDisplay;
-
             if (selectedType === 'Super Power') {
                 cardsToDisplay = gameState.allCards.filter(card => card.type === 'Super Power' || card.type === 'Kick');
             } else if (selectedType === 'Others') {
@@ -455,40 +444,33 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardsToDisplay = gameState.allCards.filter(card => card.type === selectedType);
             }
-
             cardsToDisplay.sort((a, b) => (a[langKey] || a.name_en).localeCompare(b[langKey] || b.name_en));
-
             cardsToDisplay.forEach(card => {
                 const option = document.createElement('option');
                 option.value = card.id;
                 option.textContent = `${card[langKey] || card.name_en} [${card.type}]`;
                 select.appendChild(option);
             });
-
             const confirmButton = document.createElement('button');
             confirmButton.textContent = t('confirm');
             confirmButton.onclick = () => {
                 if (select.value) handleDebugAction(action, select.value);
                 debug.selectionContainer.innerHTML = '';
             };
-
             const backButton = document.createElement('button');
             backButton.textContent = t('back_to_menu');
             backButton.onclick = showTypeSelector;
-
             const cancelButton = document.createElement('button');
             cancelButton.textContent = t('cancel');
             cancelButton.onclick = () => { debug.selectionContainer.innerHTML = ''; };
-            
             debug.selectionContainer.append(label, select, confirmButton, backButton, cancelButton);
             select.size = Math.min(10, cardsToDisplay.length > 0 ? cardsToDisplay.length : 5);
             select.style.width = 'auto';
             select.style.minWidth = '250px';
         };
-
         showTypeSelector();
     }
-    
+
     function handleDebugAction(action, value) {
         let cardData;
         switch(action) {
@@ -541,87 +523,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         renderGameBoard();
     }
-
+    
     function showStackSelector() {
         if (!gameState.player) return;
-
-        // Utwórz listę opcji do wyboru
         const options = [
             { key: 'player_deck_zone', name: t('player_deck_zone'), stack: gameState.player.deck },
             { key: 'discard_pile_zone', name: t('discard_pile_zone'), stack: gameState.player.discard },
             { key: 'destroyed_pile_zone', name: t('destroyed_pile_zone'), stack: gameState.destroyedPile }
         ];
-
-        // Wyczyść kontener selektora w panelu debugowania
         debug.selectionContainer.innerHTML = '';
         const label = document.createElement('label');
-        label.textContent = 'Wybierz stos do przejrzenia:';
+        label.textContent = t('debug_choose_stack_to_browse');
         const select = document.createElement('select');
-
         options.forEach(opt => {
             const option = document.createElement('option');
             option.value = opt.key;
             option.textContent = `${opt.name} (${opt.stack.length})`;
             select.appendChild(option);
         });
-
         const confirmButton = document.createElement('button');
-        confirmButton.textContent = 'Pokaż';
+        confirmButton.textContent = t('debug_show_button');
         confirmButton.onclick = () => {
             const selectedOption = options.find(opt => opt.key === select.value);
             if (selectedOption) {
-                // Użyj naszego istniejącego modala do wyświetlenia kart
-                choiceModalTitle.textContent = `Zawartość: ${selectedOption.name}`;
+                choiceModalTitle.textContent = `${t('stack_contents_title')} ${selectedOption.name}`;
                 choiceModalCards.innerHTML = '';
                 if (selectedOption.stack.length > 0) {
-                    // Sortujemy kopię stosu, aby nie zmieniać oryginalnej kolejności
-                    [...selectedOption.stack].sort((a,b) => a.cost - b.cost).forEach(card => {
+                    [...selectedOption.stack].sort((a,b) => (a[`name_${currentLang}`] || a.name_en).localeCompare(b[`name_${currentLang}`] || b.name_en)).forEach(card => {
                         choiceModalCards.appendChild(createCardElement(card));
                     });
                 } else {
-                    choiceModalCards.innerHTML = '<p>Ten stos jest pusty.</p>';
+                    choiceModalCards.innerHTML = `<p>${t('empty_stack_text')}</p>`;
                 }
-                // Pokaż modal i przycisk Anuluj
                 choiceModal.classList.remove('hidden');
                 document.getElementById('choice-modal-cancel').style.display = 'inline-block';
                 document.getElementById('choice-modal-confirm').classList.add('hidden');
             }
             debug.selectionContainer.innerHTML = '';
         };
-
         const cancelButton = document.createElement('button');
         cancelButton.textContent = t('cancel');
         cancelButton.onclick = () => { debug.selectionContainer.innerHTML = ''; };
-
         debug.selectionContainer.append(label, select, confirmButton, cancelButton);
     }
-
+    
     function createSpecialCardSetter() {
         const langKey = `name_${currentLang}`;
-        debug.selectionContainer.innerHTML = '';
+        const container = debug.selectionContainer;
+        if (!container) {
+            console.error("Debug selection container not found!");
+            return;
+        }
+        container.innerHTML = '';
 
-        // Krok 1: Wybierz, co chcesz ustawić (SV czy SH)
-        const label = document.createElement('label');
-        label.textContent = 'Wybierz, którą kartę specjalną chcesz ustawić:';
-        const select = document.createElement('select');
-        select.innerHTML = `
-            <option value="Super-Villain">${t('set_sv_prompt')}</option>
-            <option value="Super-Hero">${t('set_sh_prompt')}</option>
-        `;
-
-        const nextButton = document.createElement('button');
-        nextButton.textContent = 'Dalej';
-        nextButton.onclick = () => {
-            const selectedType = select.value;
-
-            // Krok 2: Wybierz konkretną kartę danego typu
-            debug.selectionContainer.innerHTML = '';
+        const showCardSelector = (cardType, position = null) => {
+            container.innerHTML = '';
             const cardLabel = document.createElement('label');
-            cardLabel.textContent = `Wybierz kartę typu ${selectedType}:`;
+            cardLabel.textContent = t('debug_choose_card_of_type').replace('{TYPE}', cardType);
             const cardSelect = document.createElement('select');
-
+            
             const cardsToDisplay = gameState.allCards
-                .filter(card => card.type === selectedType)
+                .filter(card => card.type === cardType)
                 .sort((a, b) => (a[langKey] || a.name_en).localeCompare(b[langKey] || b.name_en));
 
             cardsToDisplay.forEach(card => {
@@ -638,35 +600,82 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cardData = gameState.allCards.find(c => c.id === cardId);
                 if (cardData) {
                     const newCardInstance = {...cardData, instanceId: `${cardData.id}_${Date.now()}`};
-                    if (selectedType === 'Super-Villain') {
-                        gameState.superVillainStack.unshift(newCardInstance); // Dodaj na wierzch
-                        console.log(`DEBUG: Set ${newCardInstance.name_en} as the current Super-Villain.`);
-                    } else if (selectedType === 'Super-Hero') {
-                        gameState.player.superhero = newCardInstance;
+                    if (cardType === 'Super-Villain' && position !== null) {
+                        const index = position - 1;
+                        gameState.superVillainStack.splice(index, 0, newCardInstance);
+                        console.log(`DEBUG: Set ${newCardInstance.name_en} as Super-Villain at position ${position}.`);
+                    } else if (cardType === 'Super-Hero') {
+                        gameState.player.superheroes = [newCardInstance];
                         console.log(`DEBUG: Set ${newCardInstance.name_en} as the current Superhero.`);
                     }
                     renderGameBoard();
                 }
-                debug.selectionContainer.innerHTML = '';
+                container.innerHTML = '';
             };
 
             const backButton = document.createElement('button');
             backButton.textContent = t('back_to_menu');
-            backButton.onclick = createSpecialCardSetter; // Wróć do poprzedniego wyboru
-
-            debug.selectionContainer.append(cardLabel, cardSelect, confirmButton, backButton);
+            backButton.onclick = (cardType === 'Super-Villain') ? showSVPositionSelector : showSlotSelector;
+            container.append(cardLabel, cardSelect, confirmButton, backButton);
         };
 
-        debug.selectionContainer.append(label, select, nextButton);
+        const showSVPositionSelector = () => {
+            container.innerHTML = '';
+            const posLabel = document.createElement('label');
+            posLabel.textContent = t('debug_choose_sv_position');
+            const posSelect = document.createElement('select');
+            posSelect.innerHTML = `
+                <option value="1">${t('debug_sv_pos_first')}</option>
+                <option value="2">${t('debug_sv_pos_second')}</option>
+            `;
+            const nextButton = document.createElement('button');
+            nextButton.textContent = t('debug_next_button');
+            nextButton.onclick = () => {
+                showCardSelector('Super-Villain', parseInt(posSelect.value, 10));
+            };
+            const backButton = document.createElement('button');
+            backButton.textContent = t('back_to_menu');
+            backButton.onclick = showSlotSelector;
+            container.append(posLabel, posSelect, nextButton, backButton);
+        };
+
+        const showSlotSelector = () => {
+            container.innerHTML = '';
+            const label = document.createElement('label');
+            label.textContent = t('debug_choose_special_card_to_set');
+            const select = document.createElement('select');
+            select.innerHTML = `
+                <option value="Super-Villain">${t('set_sv_prompt')}</option>
+                <option value="Super-Hero">${t('set_sh_prompt')}</option>
+            `;
+            const nextButton = document.createElement('button');
+            nextButton.textContent = t('debug_next_button');
+            nextButton.onclick = () => {
+                const selectedType = select.value;
+                if (selectedType === 'Super-Villain') {
+                    showSVPositionSelector();
+                } else {
+                    showCardSelector('Super-Hero');
+                }
+            };
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = t('cancel');
+            cancelButton.onclick = () => { container.innerHTML = ''; };
+            container.append(label, select, nextButton, cancelButton);
+        };
+
+        showSlotSelector();
     }
 
-    async function startGame() {
+    async function startGame(options = { superheroCount: 1 }) {
         if (uiScaleSlider && gameBoard) { gameBoard.style.transform = `scale(${uiScaleSlider.value})`; }
         console.log("Starting a new game...");
         resetGameState();
         const decksPrepared = prepareDecks();
         if (!decksPrepared) return;
-        preparePlayer();
+        
+        await preparePlayer(options);
+        
         for (let i = 0; i < 5; i++) {
             if (gameState.mainDeck.length > 0) {
                 gameState.lineUp[i] = gameState.mainDeck.pop();
@@ -675,7 +684,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         await triggerFirstAppearanceAttack();
-
         renderGameBoard();
     }
     
@@ -688,16 +696,27 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.superVillainStack = [];
         gameState.lineUp = new Array(5).fill(null);
         gameState.destroyedPile = [];
-        gameState.player = { superhero: null, deck: [], hand: [], discard: [], playedCards: [], playedCardTypeCounts: new Map(), ongoing: [], gainedCardsThisTurn: [], turnTriggers: [], borrowedCards: [] };
         gameState.svDefeatedThisTurn = false;
         gameState.cardsUnderSuperheroes = [];
+        gameState.superheroAbilitiesDisabled = false;
+        gameState.bonusPower = 0;
+        gameState.player = { 
+            superheroes: [], 
+            deck: [], 
+            hand: [], 
+            discard: [], 
+            playedCards: [], 
+            playedCardTypeCounts: new Map(), 
+            ongoing: [], 
+            gainedCardsThisTurn: [], 
+            turnTriggers: [], 
+            borrowedCards: [],
+            turnFlags: {}
+        };
     }
     
     function prepareDecks() {
-        if (!gameState.allCards || gameState.allCards.length === 0) {
-            alert("BŁĄD KRYTYCZNY: Nie udało się wczytać danych kart.");
-            return false;
-        }
+        if (!gameState.allCards || gameState.allCards.length === 0) { return false; }
         const mainDeckCards = gameState.allCards.filter(card => !['Starter', 'Kick', 'Weakness', 'Super-Villain', 'Super-Hero'].includes(card.type));
         for(const card of mainDeckCards) {
             for(let i=0; i<card.count; i++) gameState.mainDeck.push({...card, instanceId: `${card.id}_${i}`});
@@ -705,23 +724,18 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.mainDeck = shuffle(gameState.mainDeck);
         gameState.kickStack = createSpecialStack('kick');
         gameState.weaknessStack = createSpecialStack('weakness');
-
-        // --- NOWA LOGIKA TWORZENIA TALII SUPER-ZŁOCZYŃCÓW ---
         const allSuperVillains = gameState.allCards.filter(c => c.type === 'Super-Villain');
         const rasAlGhul = allSuperVillains.find(c => c.id === 'ras_al_ghul');
         let otherSuperVillains = allSuperVillains.filter(c => c.id !== 'ras_al_ghul');
-        
         otherSuperVillains = shuffle(otherSuperVillains.map(sv => ({...sv, instanceId: `${sv.id}_0`})));
-
         gameState.superVillainStack = otherSuperVillains;
         if (rasAlGhul) {
-            gameState.superVillainStack.push({...rasAlGhul, instanceId: `${rasAlGhul.id}_0`}); // Ra's al Ghul idzie na spód potasowanej talii
+            gameState.superVillainStack.push({...rasAlGhul, instanceId: `${rasAlGhul.id}_0`});
         }
-        gameState.superVillainStack.reverse(); // Odwracamy talię, aby Ra's al Ghul był na wierzchu
-
+        gameState.superVillainStack.reverse();
         return true;
     }
-
+    
     function createSpecialStack(cardId) {
         const cardData = gameState.allCards.find(c => c.id === cardId);
         if (!cardData) return [];
@@ -729,10 +743,19 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < cardData.count; i++) stack.push({...cardData, instanceId: `${cardId}_${i}`});
         return stack;
     }
-    function preparePlayer() {
-        const superheroData = gameState.allCards.find(c => c.id === 'batman');
-        if (superheroData) {
-            gameState.player.superhero = {...superheroData, instanceId: `${superheroData.id}_hero`};
+    
+    async function preparePlayer(options) {
+        const allSuperheroes = shuffle(gameState.allCards.filter(c => c.type === 'Super-Hero'));
+        if (options.superheroCount === 1) {
+            const chosenHero = allSuperheroes.pop();
+            gameState.player.superheroes = [{...chosenHero, instanceId: `${chosenHero.id}_hero_1`}];
+        } else if (options.superheroCount === 2) {
+            const heroesToChooseFrom = allSuperheroes.slice(0, 3).map((h, i) => ({...h, instanceId: `${h.id}_option_${i}`}));
+            const chosenIds = await promptPlayerChoice(t('choose_two_superheroes'), heroesToChooseFrom, { selectionCount: 2, isCancellable: false, modalClass: 'superhero-selection-modal' });
+            gameState.player.superheroes = chosenIds.map((id, i) => {
+                const heroData = heroesToChooseFrom.find(h => h.instanceId === id);
+                return {...heroData, instanceId: `${heroData.id}_hero_${i+1}`};
+            });
         }
         const punches = gameState.allCards.find(c => c.id === 'punch');
         const vulnerabilities = gameState.allCards.find(c => c.id === 'vulnerability');
@@ -741,10 +764,9 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.player.deck = shuffle(gameState.player.deck);
         drawCards(gameState.player, 5);
     }
-
+    
     async function playCard(cardToPlay, options = {}) {
         const isTemporary = options.isTemporary || false;
-
         if (!isTemporary) {
             if (cardToPlay.type === 'Location') {
                 gameState.player.ongoing.push(cardToPlay);
@@ -752,13 +774,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameState.player.playedCards.push(cardToPlay);
             }
         }
-
+        
         const currentPlays = gameState.player.playedCardTypeCounts.get(cardToPlay.type) || 0;
         gameState.player.playedCardTypeCounts.set(cardToPlay.type, currentPlays + 1);
 
-        // Przywracamy dodawanie mocy bazowej
         gameState.currentPower += cardToPlay.power || 0;
 
+        if (!gameState.superheroAbilitiesDisabled && gameState.player.superheroes.some(h => h.id === 'cyborg') && !gameState.player.turnFlags.cyborgAbilityUsed && cardToPlay.type === 'Equipment') {
+            drawCards(gameState.player, 1, { source: 'ability' });
+            gameState.player.turnFlags.cyborgAbilityUsed = true;
+        }
+
+        // NAJPIERW URUCHOM WSZYSTKIE EFEKTY KARTY
         for (const locationCard of gameState.player.ongoing) {
             if (locationCard.effect_tags && locationCard.effect_tags.some(tag => tag.startsWith('ongoing_triggered_ability'))) {
                 for (const tag of locationCard.effect_tags) {
@@ -766,20 +793,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-
-        for (const tag of cardToPlay.effect_tags) {
-            if (tag.startsWith('on_play_effect')) { 
-                await applyCardEffect(tag, gameState, gameState.player, {});
-            }
-        }
-
+        
         for (const tag of cardToPlay.effect_tags) {
             const effectName = tag.split(':')[0];
-            if (effectName !== 'on_play_effect' && effectName !== 'eot_effect') {
+            if (effectName !== 'eot_effect' && effectName !== 'cleanup_effect' && effectName !== 'first_appearance_attack') {
                 await applyCardEffect(tag, gameState, gameState.player, {});
             }
         }
-
+        
+        // DOPIERO TERAZ SPRAWDŹ TRIGGERY
         await checkTurnTriggers(cardToPlay);
     }
 
@@ -791,19 +813,39 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cardIndex === -1) return;
 
         const [playedCard] = gameState.player.hand.splice(cardIndex, 1);
+        
+        // ZDOLNOŚCI SUPERBOHATERÓW DODAJĄCE MOC (ADDITIVE)
+        if (!gameState.superheroAbilitiesDisabled) {
+            const playerHeroes = gameState.player.superheroes;
+            const allPlayedCards = [...gameState.player.playedCards, ...gameState.player.ongoing];
 
-        // Zdolność Batmana musi być sprawdzona tutaj, przed zagraniem
-        if (gameState.player.superhero && gameState.player.superhero.id === 'batman') {
-            if (playedCard.type === 'Equipment') {
-                console.log("Batman's ability triggered: +1 Power for Equipment.");
+            if (playerHeroes.some(h => h.id === 'batman') && playedCard.type === 'Equipment') {
                 gameState.currentPower += 1;
             }
+            if (playerHeroes.some(h => h.id === 'superman')) {
+                const isDistinctSuperPower = !allPlayedCards.some(c => c.id === playedCard.id && (c.type === 'Super Power' || c.type === 'Kick'));
+                if ((playedCard.type === 'Super Power' || playedCard.type === 'Kick') && isDistinctSuperPower) {
+                    gameState.currentPower += 1;
+                }
+            }
+            if (playerHeroes.some(h => h.id === 'cyborg') && (playedCard.type === 'Super Power' || playedCard.type === 'Kick') && !gameState.player.turnFlags.cyborgPowerUsed) {
+                gameState.currentPower += 1;
+                gameState.player.turnFlags.cyborgPowerUsed = true;
+            }
+            if (playerHeroes.some(h => h.id === 'green_lantern')) {
+                const validPlayedCards = allPlayedCards.filter(c => c.cost >= 1);
+                const distinctCardIds = new Set(validPlayedCards.map(c => c.id));
+                if (playedCard.cost >= 1 && !distinctCardIds.has(playedCard.id) && distinctCardIds.size === 2) {
+                    gameState.currentPower += 3;
+                }
+            }
         }
-
+        
         await playCard(playedCard);
 
         renderGameBoard();
-    }
+}
+
     async function handleLineUpClick(event) {
         const cardElement = event.target.closest('.card');
         if (!cardElement) return;
@@ -818,6 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderGameBoard();
         }
     }
+
     async function handleKickStackClick() {
         if (gameState.kickStack.length === 0) return;
         const cardToBuy = gameState.kickStack[0];
@@ -830,35 +873,196 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function handleSuperVillainStackClick() {
+        if (gameState.player && gameState.svDefeatedThisTurn) {
+            console.log("You can only defeat one Super-Villain per turn.");
+            return;
+        }
         if (gameState.superVillainStack.length === 0) return;
-
         const superVillain = gameState.superVillainStack[0];
         const effectiveCost = Math.max(0, superVillain.cost - (gameState.superVillainCostModifier || 0));
-
         if (gameState.currentPower >= effectiveCost) {
-            // --- NOWA LOGIKA: ZWROT KART PRZED POKONANIEM ---
+            if (gameState.superheroAbilitiesDisabled) {
+                gameState.superheroAbilitiesDisabled = false;
+                await showNotification(t('captain_cold_defeat_text'));
+            }
             const cardsToReturn = gameState.cardsUnderSuperheroes.filter(data => data.tiedToVillainId === superVillain.id);
             if (cardsToReturn.length > 0) {
                 for (const data of cardsToReturn) {
-                    // W grze solo zwracamy karty tylko aktywnemu graczowi
-                    gameState.player.deck.unshift(data.card); // Połóż na wierzchu talii
-                    await engine.promptWithCard(
+                    gameState.player.deck.push(data.card);
+                    await promptWithCard(
                         `Pokonałeś ${superVillain.name_pl}! Odzyskujesz tę kartę. Zostaje ona umieszczona na wierzchu Twojej talii.`,
                         data.card,
                         [{ text: 'OK', value: true }]
                     );
                 }
-                // Usuń zwrócone karty z globalnego stanu
                 gameState.cardsUnderSuperheroes = gameState.cardsUnderSuperheroes.filter(data => data.tiedToVillainId !== superVillain.id);
             }
-
             gameState.currentPower -= effectiveCost;
             const defeatedVillain = gameState.superVillainStack.shift();
             await gainCard(gameState.player, defeatedVillain);
-
             gameState.svDefeatedThisTurn = true;
-
             renderGameBoard();
+        }
+    }
+
+    async function gainCard(player, cardToGain) {
+        const langKey = `name_${currentLang}`;
+        console.log(`Player is gaining ${cardToGain[langKey] || cardToGain.name_en}`);
+        let destination = player.discard;
+        let askToTop = false;
+
+        if (cardToGain.id === 'solomon_grundy') {
+            askToTop = true;
+        }
+
+        if (!gameState.superheroAbilitiesDisabled && player.superheroes.some(h => h.id === 'aquaman') && cardToGain.cost <= 5) {
+            askToTop = true;
+        }
+
+        if (askToTop) {
+            const userConfirmed = await promptConfirmation(t('solomon_grundy_prompt').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
+            if (userConfirmed) {
+                destination = player.deck;
+            }
+        }
+
+        player.gainedCardsThisTurn.push(cardToGain);
+
+        // POPRAWKA: Zawsze używamy .push(), aby dodać na koniec (na wierzch)
+        destination.push(cardToGain);
+    }
+
+
+    async function checkTurnTriggers(playedCard) {
+        const triggers = [...gameState.player.turnTriggers];
+        for (const trigger of triggers) {
+            if (trigger.condition.on === 'play' && trigger.condition.id === playedCard.id) {
+                console.log(`Trigger activated: ${trigger.effectTag}`);
+                await applyCardEffect(trigger.effectTag, gameState, gameState.player, {});
+                gameState.player.turnTriggers = gameState.player.turnTriggers.filter(t => t !== trigger);
+            }
+        }
+    }
+
+    async function triggerFirstAppearanceAttack() {
+        if (gameState.superVillainStack.length > 0) {
+            const newSuperVillain = gameState.superVillainStack[0];
+            const faTag = newSuperVillain.effect_tags.find(tag => tag.startsWith('first_appearance_attack'));
+            if (faTag) {
+                console.log("A new Super-Villain is revealed, triggering First Appearance Attack!");
+                await showNotification(`Nowy Super-złoczyńca przybywa: ${newSuperVillain.name_pl}!\nJego Atak z Pierwszego Pojawienia zostaje aktywowany!`);
+                await applyCardEffect(faTag, gameState, gameState.player, { revealedCard: newSuperVillain });
+            }
+        }
+    }
+
+    async function endTurn() {
+        if(!gameState.player) return;
+        const player = gameState.player;
+
+        // --- FAZA ZWROTU KART (RETURN) ---
+        if (player.borrowedCards.length > 0) {
+            console.log("Returning borrowed cards to the Line-Up.");
+            player.borrowedCards.forEach(borrowed => {
+                if (gameState.lineUp[borrowed.originalIndex] === null) {
+                    gameState.lineUp[borrowed.originalIndex] = borrowed.card;
+                } else {
+                    const emptySlot = gameState.lineUp.findIndex(slot => slot === null);
+                    if (emptySlot !== -1) {
+                        gameState.lineUp[emptySlot] = borrowed.card;
+                    }
+                }
+            });
+        }
+
+        // --- FAZA SPRZĄTANIA (CLEAN-UP) ---
+        console.log("Entering Clean-Up phase.");
+        const cardsWithCleanup = [];
+        const regularPlayedCards = [];
+        player.playedCards.forEach(card => {
+            if (card.effect_tags.some(tag => tag.startsWith('cleanup_effect'))) {
+                cardsWithCleanup.push(card);
+            } else {
+                regularPlayedCards.push(card);
+            }
+        });
+        for (const card of cardsWithCleanup) {
+            for (const tag of card.effect_tags) {
+                if (tag.startsWith('cleanup_effect')) {
+                    await applyCardEffect(tag, gameState, player, { cardWithEffect: card });
+                }
+            }
+        }
+        
+        player.discard.push(...player.hand);
+        player.discard.push(...regularPlayedCards);
+        player.hand = [];
+        player.playedCards = [];
+
+        // --- FAZA EFEKTÓW KOŃCA TURY (TERAZ DZIAŁA PRZED DOBRANIEM) ---
+        console.log("Entering End-of-Turn phase.");
+        const activePlayerCards = [...player.discard, ...player.ongoing]; 
+        for (const card of activePlayerCards) {
+            for (const tag of card.effect_tags) {
+                if (tag.startsWith('eot_effect')) {
+                    await applyCardEffect(tag, gameState, player, { cardWithEffect: card });
+                }
+            }
+        }
+        
+        // --- FAZA UZUPEŁNIANIA I DOBIERANIA ---
+        for (let i = 0; i < gameState.lineUp.length; i++) {
+            if (gameState.lineUp[i] === null) {
+                if (gameState.mainDeck.length > 0) {
+                    gameState.lineUp[i] = gameState.mainDeck.pop();
+                }
+            }
+        }
+        
+        if (!gameState.superheroAbilitiesDisabled && player.superheroes.some(h => h.id === 'wonder_woman')) {
+            const villainsGained = player.gainedCardsThisTurn.filter(c => c.type === 'Villain' || c.type === 'Super-Villain').length;
+            if (villainsGained > 0) {
+                drawCards(player, villainsGained, { source: 'ability' });
+            }
+        }
+        
+        drawCards(player, 5); // Dobranie nowej ręki
+        
+        // Reset flag i stanu na nową turę
+        player.playedCardTypeCounts.clear();
+        player.gainedCardsThisTurn = [];
+        gameState.superVillainCostModifier = 0;
+        player.turnTriggers = [];
+        player.borrowedCards = [];
+        player.turnFlags = {};
+        gameState.bonusPower = 0;
+        gameState.currentPower = 0;
+        
+        if (gameState.svDefeatedThisTurn) {
+            await triggerFirstAppearanceAttack();
+            gameState.svDefeatedThisTurn = false;
+        }
+        
+        renderGameBoard();
+    }
+    
+    async function applyCardEffect(tag, gameState, player, details = {}) {
+        const [effectName, ...params] = tag.split(':');
+        const allParams = params.join(':');
+        if (cardEffects && typeof cardEffects[effectName] === 'function') {
+            const engine = {
+                promptPlayerChoice,
+                promptConfirmation,
+                showNotification,
+                promptWithCard,
+                playCard,
+                gainCard,
+                applyCardEffect,
+                renderGameBoard
+            };
+            await cardEffects[effectName](gameState, player, allParams, engine, details);
+        } else {
+            console.warn(`Effect '${effectName}' not found in effects.js`);
         }
     }
 
@@ -877,21 +1081,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Stwórz kopię kart, aby nie modyfikować stanu gry
         const cardsForScoring = JSON.parse(JSON.stringify(allPlayerCards));
 
-        // 3. Zastosuj efekty warunkowe modyfikujące punkty zwycięstwa
+        // 3. Policz karty potrzebne do warunków
         const equipmentCount = cardsForScoring.filter(card => card.type === 'Equipment').length;
         const heroCount = cardsForScoring.filter(card => card.type === 'Hero').length;
         const weaknessCount = cardsForScoring.filter(card => card.id === 'weakness').length;
-        const suicideSquadCount = cardsForScoring.filter(card => card.id === 'suicide_squad').length; // Policz Suicide Squad
+        const suicideSquadCount = cardsForScoring.filter(card => card.id === 'suicide_squad').length;
 
+        // 4. Zastosuj efekty warunkowe modyfikujące punkty zwycięstwa
         cardsForScoring.forEach(card => {
-            // --- Logika dla Pasa z Gadżetami ---
+            // --- Logika dla Pasa z Gadżetami (Utility Belt) ---
             if (card.id === 'utility_belt') {
+                // Warunek: "4 lub więcej INNYCH Ekwipunków", co oznacza łącznie 5+ Ekwipunków
                 if (equipmentCount >= 5) {
                     card.vp = 5;
                 }
             }
             // --- Logika dla Green Arrowa ---
             if (card.id === 'green_arrow') {
+                // Warunek: "4 lub więcej INNYCH Bohaterów", co oznacza łącznie 5+ Bohaterów
                 if (heroCount >= 5) {
                     card.vp = 5;
                 }
@@ -900,213 +1107,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (card.id === 'bizarro') {
                 card.vp = weaknessCount * 2;
             }
-            // --- NOWA LOGIKA DLA SUICIDE SQUAD ---
+            // --- Logika dla Suicide Squad ---
             if (card.id === 'suicide_squad') {
-                // Karta jest warta 1 PZ za KAŻDĄ kartę Suicide Squad w talii
                 card.vp = suicideSquadCount;
             }
         });
 
-        // 4. Zsumuj ostateczne wartości punktowe wszystkich kart
+        // 5. Zsumuj ostateczne wartości punktowe wszystkich kart
         let totalVP = 0;
         cardsForScoring.forEach(card => {
             totalVP += card.vp || 0;
         });
 
         return totalVP;
-}
-
-    function recalculatePower() {
-        if (!gameState.player) return;
-
-        let totalPower = 0;
-        const allPlayedCards = [...gameState.player.playedCards, ...gameState.player.ongoing];
-
-        // 1. Dodaj moc bazową wszystkich zagranych kart
-        allPlayedCards.forEach(card => {
-            totalPower += card.power || 0;
-        });
-
-        // 2. Dodaj bonusy z efektów warunkowych
-        allPlayedCards.forEach(card => {
-            // --- Logika dla High-Tech Hero ---
-            if (card.id === 'high-tech_hero') {
-                const hasSuperPower = allPlayedCards.some(c => c.type === 'Super Power');
-                const hasEquipment = allPlayedCards.some(c => c.type === 'Equipment');
-                if (hasSuperPower || hasEquipment) {
-                    totalPower += 3;
-                } else {
-                    totalPower += 1;
-                }
-            }
-            // --- Logika dla Potwora z Bagien ---
-            if (card.id === 'swamp_thing') {
-                if (gameState.player.ongoing.length > 0) {
-                    totalPower += 5;
-                } else {
-                    totalPower += 2;
-                }
-            }
-            // Itd. dla innych kart dających warunkową moc...
-        });
-
-        // 3. Dodaj bonusy ze zdolności Superbohatera
-        if (gameState.player.superhero && gameState.player.superhero.id === 'batman') {
-            const equipmentCount = allPlayedCards.filter(c => c.type === 'Equipment').length;
-            totalPower += equipmentCount;
-        }
-
-        gameState.currentPower = totalPower;
-    }
-
-    async function gainCard(player, cardToGain) {
-        const langKey = `name_${currentLang}`;
-        console.log(`Player is gaining ${cardToGain[langKey] || cardToGain.name_en}`);
-        let destination = player.discard;
-    
-        if (cardToGain.effect_tags.includes('on_gain_or_buy:may_move_to_deck_top')) {
-            const userConfirmed = await promptConfirmation(`Czy chcesz położyć "${cardToGain[langKey] || cardToGain.name_en}" na wierzchu swojej talii?`);
-            if (userConfirmed) {
-                destination = player.deck;
-            }
-        }
-    
-        player.gainedCardsThisTurn.push(cardToGain);
-    
-        if (destination === player.deck) {
-            destination.unshift(cardToGain);
-        } else {
-            destination.push(cardToGain);
-        }
-    }
-
-    async function endTurn() {
-        if(!gameState.player) return;
-
-        // --- FAZA EFEKTÓW KOŃCA TURY ---
-        console.log("Entering End-of-Turn phase.");
-        const activePlayerCards = [...gameState.player.playedCards, ...gameState.player.ongoing];
-        for (const card of activePlayerCards) {
-            for (const tag of card.effect_tags) {
-                if (tag.startsWith('eot_effect')) {
-                    await applyCardEffect(tag, gameState, gameState.player, { cardWithEffect: card });
-                }
-            }
-        }
-
-        // --- FAZA ZWROTU KART (RETURN) ---
-        if (gameState.player.borrowedCards.length > 0) {
-            console.log("Returning borrowed cards to the Line-Up.");
-            gameState.player.borrowedCards.forEach(borrowed => {
-                if (gameState.lineUp[borrowed.originalIndex] === null) {
-                    gameState.lineUp[borrowed.originalIndex] = borrowed.card;
-                } else {
-                    const emptySlot = gameState.lineUp.findIndex(slot => slot === null);
-                    if (emptySlot !== -1) {
-                        gameState.lineUp[emptySlot] = borrowed.card;
-                    }
-                }
-            });
-        }
-
-        // --- FAZA SPRZĄTANIA (CLEAN-UP) ---
-        console.log("Entering Clean-Up phase.");
-        const cardsWithCleanup = [];
-        const regularPlayedCards = [];
-        gameState.player.playedCards.forEach(card => {
-            if (card.effect_tags.some(tag => tag.startsWith('cleanup_effect'))) {
-                cardsWithCleanup.push(card);
-            } else {
-                regularPlayedCards.push(card);
-            }
-        });
-        for (const card of cardsWithCleanup) {
-            for (const tag of card.effect_tags) {
-                if (tag.startsWith('cleanup_effect')) {
-                    await applyCardEffect(tag, gameState, gameState.player, { cardWithEffect: card });
-                }
-            }
-        }
-        gameState.player.discard.push(...gameState.player.hand);
-        gameState.player.discard.push(...regularPlayedCards);
-        gameState.player.hand = [];
-        gameState.player.playedCards = [];
-        gameState.player.playedCardTypeCounts.clear();
-        gameState.player.gainedCardsThisTurn = [];
-        gameState.superVillainCostModifier = 0;
-        gameState.player.turnTriggers = [];
-        gameState.player.borrowedCards = [];
-
-        // --- FAZA UZUPEŁNIANIA (REFILL) ---
-        for (let i = 0; i < gameState.lineUp.length; i++) {
-            if (gameState.lineUp[i] === null) {
-                if (gameState.mainDeck.length > 0) {
-                    gameState.lineUp[i] = gameState.mainDeck.pop();
-                }
-            }
-        }
-        
-        // --- FAZA DOBIERANIA (DRAW) ---
-        drawCards(gameState.player, 5);
-        gameState.currentPower = 0;
-
-        // --- NOWA, OSTATECZNA FAZA: ODKRYCIE SUPER-ZŁOCZYŃCY ---
-        if (gameState.svDefeatedThisTurn) {
-            await triggerFirstAppearanceAttack();
-            gameState.svDefeatedThisTurn = false; // Zresetuj flagę
-        }
-        
-        renderGameBoard();
-    }
-    
-    async function applyCardEffect(tag, gameState, player, details = {}) {
-        const [effectName, ...params] = tag.split(':');
-        
-        const allParams = params.join(':');
-
-        if (cardEffects && typeof cardEffects[effectName] === 'function') {
-            const engine = {
-                promptPlayerChoice,
-                promptConfirmation,
-                showNotification,
-                promptWithCard,
-                playCard,
-                gainCard,
-                applyCardEffect,
-                renderGameBoard
-            };
-            await cardEffects[effectName](gameState, player, allParams, engine, details);
-        } else {
-            console.warn(`Effect '${effectName}' not found in effects.js`);
-        }
-    }
-
-    async function checkTurnTriggers(playedCard) {
-        const triggers = [...gameState.player.turnTriggers]; // Kopiujemy, bo tablica może być modyfikowana
-        for (const trigger of triggers) {
-            // Sprawdź, czy zagrana karta pasuje do warunku triggera
-            if (trigger.condition.on === 'play' && trigger.condition.id === playedCard.id) {
-                console.log(`Trigger activated: ${trigger.effectTag}`);
-                // Uruchom powiązany efekt
-                await applyCardEffect(trigger.effectTag, gameState, gameState.player, {});
-                // Usuń trigger, aby nie uruchomił się ponownie
-                gameState.player.turnTriggers = gameState.player.turnTriggers.filter(t => t !== trigger);
-            }
-        }
-    }
-
-    async function triggerFirstAppearanceAttack() {
-        if (gameState.superVillainStack.length > 0) {
-            const newSuperVillain = gameState.superVillainStack[0];
-            const faTag = newSuperVillain.effect_tags.find(tag => tag.startsWith('first_appearance_attack'));
-
-            if (faTag) {
-                console.log("A new Super-Villain is revealed, triggering First Appearance Attack!");
-                // Pokaż graczowi, co się dzieje
-                await showNotification(`Nowy Super-złoczyńca przybywa: ${newSuperVillain.name_pl}!\nJego Atak z Pierwszego Pojawienia zostaje aktywowany!`);
-                await applyCardEffect(faTag, gameState, gameState.player, { revealedCard: newSuperVillain });
-            }
-        }
     }
     
     function renderGameBoard() {
@@ -1121,6 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHUD();
         updateBuyableStatus();
     }
+
     function createCardElement(cardData) {
         const cardEl = document.createElement('div');
         cardEl.classList.add('card');
@@ -1131,12 +1145,14 @@ document.addEventListener('DOMContentLoaded', () => {
         cardEl.style.backgroundPosition = 'center';
         return cardEl;
     }
+
     function createCounterOverlay(count) {
         const counter = document.createElement('div');
         counter.textContent = count;
         counter.style.cssText = `position: absolute; top: 5px; right: 5px; background-color: rgba(0, 0, 0, 0.8); color: white; font-weight: bold; font-size: 16px; min-width: 26px; height: 26px; padding: 2px; border-radius: 50%; pointer-events: none; display: flex; justify-content: center; align-items: center; box-sizing: border-box;`;
         return counter;
     }
+
     function createCardBack() {
         const cardBack = document.createElement('div');
         cardBack.classList.add('card');
@@ -1144,17 +1160,20 @@ document.addEventListener('DOMContentLoaded', () => {
         cardBack.style.backgroundSize = 'cover';
         return cardBack;
     }
+
     function createDashedPlaceholder() {
         const placeholder = document.createElement('div');
         placeholder.className = 'card-placeholder-dashed';
         return placeholder;
     }
+
     function createLineUpPlaceholder() {
         const placeholder = document.createElement('div');
         placeholder.className = 'lineup-placeholder';
         placeholder.textContent = t('bought_card_placeholder');
         return placeholder;
     }
+
     function renderStacks() {
         if(!gameState.player) return;
         gameBoardElements.mainDeck.innerHTML = '';
@@ -1188,15 +1207,23 @@ document.addEventListener('DOMContentLoaded', () => {
         gameBoardElements.weaknessStack.innerHTML = '';
         if (gameState.weaknessStack.length > 0) gameBoardElements.weaknessStack.appendChild(createCardElement(gameState.weaknessStack[0]));
         else gameBoardElements.weaknessStack.appendChild(createDashedPlaceholder());
+        
         gameBoardElements.superVillainStack.innerHTML = '';
-        if (gameState.superVillainStack.length > 0) gameBoardElements.superVillainStack.appendChild(createCardElement(gameState.superVillainStack[0]));
-        else gameBoardElements.superVillainStack.appendChild(createDashedPlaceholder());
+        if (gameState.svDefeatedThisTurn && gameState.superVillainStack.length > 0) {
+            gameBoardElements.superVillainStack.appendChild(createCardBack());
+        } else if (gameState.superVillainStack.length > 0) {
+            gameBoardElements.superVillainStack.appendChild(createCardElement(gameState.superVillainStack[0]));
+        } else {
+            gameBoardElements.superVillainStack.appendChild(createDashedPlaceholder());
+        }
     }
+
     function renderHand() {
         if(!gameBoardElements.handCardsWrapper || !gameState.player) return;
         gameBoardElements.handCardsWrapper.innerHTML = '';
         gameState.player.hand.forEach(card => gameBoardElements.handCardsWrapper.appendChild(createCardElement(card)));
     }
+
     function renderLineUp() {
         if (!gameBoardElements.lineUp || !gameState.lineUp) return;
         gameBoardElements.lineUp.innerHTML = '';
@@ -1208,6 +1235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
     function renderOngoing() {
         if(!gameBoardElements.locations || !gameState.player) return;
         gameBoardElements.locations.innerHTML = '';
@@ -1217,15 +1245,23 @@ document.addEventListener('DOMContentLoaded', () => {
             gameBoardElements.locations.appendChild(createDashedPlaceholder());
         }
     }
+
     function renderSuperhero() {
         if(!gameBoardElements.superheroArea) return;
         gameBoardElements.superheroArea.innerHTML = '';
-        if (gameState.player && gameState.player.superhero) {
-            gameBoardElements.superheroArea.appendChild(createCardElement(gameState.player.superhero));
+        if (gameState.player && gameState.player.superheroes.length > 0) {
+            gameState.player.superheroes.forEach(hero => {
+                if (gameState.superheroAbilitiesDisabled) {
+                    gameBoardElements.superheroArea.appendChild(createCardBack());
+                } else {
+                    gameBoardElements.superheroArea.appendChild(createCardElement(hero));
+                }
+            });
         } else {
             gameBoardElements.superheroArea.appendChild(createDashedPlaceholder());
         }
     }
+
     function updateHUD() {
         if (!gameState.player) return;
         gameBoardElements.powerValue.textContent = gameState.currentPower;

@@ -1,3 +1,5 @@
+// card_effects/then_discard_card.js
+
 cardEffects.then_discard_card = async (gameState, player, effectTag, engine) => {
     const parts = effectTag.split('_');
     const count = parseInt(parts[0].split('=')[1], 10);
@@ -9,7 +11,11 @@ cardEffects.then_discard_card = async (gameState, player, effectTag, engine) => 
         return;
     }
 
-    const chosenCardIds = await engine.promptPlayerChoice(`Wybierz ${count} karty do odrzucenia:`, player.hand, { selectionCount: count, isCancellable: false });
+    const chosenCardIds = await engine.promptPlayerChoice(
+        t('choose_X_cards_to_discard').replace('{X}', count), 
+        player.hand, 
+        { selectionCount: count, isCancellable: false }
+    );
     if (chosenCardIds && chosenCardIds.length > 0) {
         chosenCardIds.forEach(instanceId => {
             const cardIndex = player.hand.findIndex(c => c.instanceId === instanceId);

@@ -59,7 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if(closeIngameSettingsButton) closeIngameSettingsButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
         if(ingameSettingsModal) ingameSettingsModal.addEventListener('click', (e) => { if (e.target === ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
         if(uiScaleSlider) uiScaleSlider.addEventListener('input', (e) => { if(gameBoard) gameBoard.style.transform = `scale(${e.target.value})`; });
-        if(resetGameButton) resetGameButton.addEventListener('click', () => { if (confirm('Czy na pewno chcesz zresetować grę?')) startGame(); });
+        if(resetGameButton) resetGameButton.addEventListener('click', async () => {
+            const userConfirmed = await promptConfirmation(t('reset_game_confirm'));
+            if (userConfirmed) {
+                console.clear(); // <-- DODANA LINIA
+                startGame({ superheroCount: gameState.player.superheroes.length });
+            }
+        });
         if(debug.toggleButton) debug.toggleButton.addEventListener('click', () => { debug.panel.classList.toggle('hidden'); debug.selectionContainer.innerHTML = ''; });
         if(debug.closeButton) debug.closeButton.addEventListener('click', () => { debug.panel.classList.add('hidden'); debug.selectionContainer.innerHTML = ''; });
         if(debug.powerPlus) debug.powerPlus.addEventListener('click', () => { if (!gameState.player) return; gameState.currentPower++; renderGameBoard(); });
@@ -297,15 +303,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function resetGameState() {
-        gameState.currentPower = 0;
-        gameState.mainDeck = [];
-        gameState.kickStack = [];
-        gameState.weaknessStack = [];
-        gameState.superVillainStack = [];
-        gameState.lineUp = new Array(5).fill(null);
-        gameState.destroyedPile = [];
-        gameState.player = { superhero: null, deck: [], hand: [], discard: [], playedCards: [], playedCardTypeCounts: new Map(), ongoing: [] };
-    }
+    gameState.currentPower = 0;
+    gameState.superVillainCostModifier = 0;
+    gameState.mainDeck = [];
+    gameState.kickStack = [];
+    gameState.weaknessStack = [];
+    gameState.superVillainStack = [];
+    gameState.lineUp = new Array(5).fill(null);
+    gameState.destroyedPile = [];
+    gameState.svDefeatedThisTurn = false;
+    gameState.cardsUnderSuperheroes = [];
+    gameState.player = { 
+        superheroes: [], 
+        deck: [], 
+        hand: [], 
+        discard: [], 
+        playedCards: [], 
+        playedCardTypeCounts: new Map(), 
+        ongoing: [], 
+        gainedCardsThisTurn: [], 
+        turnTriggers: [], 
+        borrowedCards: [],
+        turnFlags: {}
+    };
+}
     
     function prepareDecks() {
         if (!gameState.allCards || gameState.allCards.length === 0) {
@@ -509,13 +530,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function renderStacks() {
         if(!gameState.player) return;
+        
+        // Talia Główna
         gameBoardElements.mainDeck.innerHTML = '';
-        if (gameState.mainDeck.length > 0) gameBoardElements.mainDeck.appendChild(createCardBack()); else gameBoardElements.mainDeck.appendChild(createDashedPlaceholder());
+        if (gameState.mainDeck.length > 0) {
+            gameBoardElements.mainDeck.appendChild(createCardBack());
+        } else {
+            gameBoardElements.mainDeck.appendChild(createDashedPlaceholder());
+        }
+        
+        // Talia Gracza
         const deckCount = gameState.player.deck.length;
         gameBoardElements.playerDeck.innerHTML = '';
-        if (deckCount > 0) gameBoardElements.playerDeck.appendChild(createCardBack());
-        else gameBoardElements.playerDeck.appendChild(createDashedPlaceholder());
+        if (deckCount > 0) {
+            gameBoardElements.playerDeck.appendChild(createCardBack());
+        } else {
+            gameBoardElements.playerDeck.appendChild(createDashedPlaceholder());
+        }
         gameBoardElements.playerDeck.appendChild(createCounterOverlay(deckCount));
+        
+        // Stos kart odrzuconych Gracza
         const discardCount = gameState.player.discard.length;
         gameBoardElements.playerDiscard.innerHTML = '';
         if (discardCount > 0) {
@@ -525,6 +559,8 @@ document.addEventListener('DOMContentLoaded', () => {
             gameBoardElements.playerDiscard.appendChild(createDashedPlaceholder());
         }
         gameBoardElements.playerDiscard.appendChild(createCounterOverlay(discardCount));
+        
+        // Stos kart zniszczonych
         const destroyedCount = gameState.destroyedPile.length;
         gameBoardElements.destroyed.innerHTML = '';
         if (destroyedCount > 0) {
@@ -534,15 +570,40 @@ document.addEventListener('DOMContentLoaded', () => {
             gameBoardElements.destroyed.appendChild(createDashedPlaceholder());
         }
         gameBoardElements.destroyed.appendChild(createCounterOverlay(destroyedCount));
+        
+        // Stos 'Kick'
         gameBoardElements.kickStack.innerHTML = '';
-        if (gameState.kickStack.length > 0) gameBoardElements.kickStack.appendChild(createCardElement(gameState.kickStack[0]));
-        else gameBoardElements.kickStack.appendChild(createDashedPlaceholder());
+        if (gameState.kickStack.length > 0) {
+            gameBoardElements.kickStack.appendChild(createCardElement(gameState.kickStack[0]));
+        } else {
+            gameBoardElements.kickStack.appendChild(createDashedPlaceholder());
+        }
+        
+        // Stos 'Weakness'
         gameBoardElements.weaknessStack.innerHTML = '';
-        if (gameState.weaknessStack.length > 0) gameBoardElements.weaknessStack.appendChild(createCardElement(gameState.weaknessStack[0]));
-        else gameBoardElements.weaknessStack.appendChild(createDashedPlaceholder());
+        if (gameState.weaknessStack.length > 0) {
+            gameBoardElements.weaknessStack.appendChild(createCardElement(gameState.weaknessStack[0]));
+        } else {
+            gameBoardElements.weaknessStack.appendChild(createDashedPlaceholder());
+        }
+
+        // Stos Super-złoczyńców
+        console.log(`RENDERUJE STOS SV: Flaga 'svDefeatedThisTurn' = ${gameState.svDefeatedThisTurn}`);
+
         gameBoardElements.superVillainStack.innerHTML = '';
-        if (gameState.superVillainStack.length > 0) gameBoardElements.superVillainStack.appendChild(createCardElement(gameState.superVillainStack[0]));
-        else gameBoardElements.superVillainStack.appendChild(createDashedPlaceholder());
+        if (gameState.svDefeatedThisTurn && gameState.superVillainStack.length > 0) {
+            console.log("--> Decyzja: Renderuję REWERS KARTY.");
+            // Jeśli właśnie pokonaliśmy SV, pokaż rewers do końca tury
+            gameBoardElements.superVillainStack.appendChild(createCardBack());
+        } else if (gameState.superVillainStack.length > 0) {
+            console.log("--> Decyzja: Renderuję NOWEGO SV.");
+            // W normalnej sytuacji pokaż aktualnego SV
+            gameBoardElements.superVillainStack.appendChild(createCardElement(gameState.superVillainStack[0]));
+        } else {
+            console.log("--> Decyzja: Renderuję PUSTE MIEJSCE.");
+            // Jeśli stos jest pusty, pokaż placeholder
+            gameBoardElements.superVillainStack.appendChild(createDashedPlaceholder());
+        }
     }
     function renderHand() {
         if(!gameBoardElements.handCardsWrapper || !gameState.player) return;

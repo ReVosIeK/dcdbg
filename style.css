@@ -104,6 +104,11 @@ body {
   box-shadow: 0 0 15px var(--color-glow), inset 0 0 10px rgba(0, 170, 255, 0.5);
 }
 
+.button-group {
+    display: flex;
+    gap: 20px;
+}
+
 .setting-item {
   display: flex;
   align-items: center;
@@ -118,6 +123,13 @@ input[type='range'] {
   border: 1px solid var(--color-border);
   padding: 5px;
   border-radius: 4px;
+}
+
+#card-pool-text {
+    margin-bottom: 15px;
+    text-align: center;
+    font-style: italic;
+    color: var(--color-text-muted);
 }
 
 /* --- UKŁAD PLANSZY GRY --- */
@@ -342,10 +354,21 @@ input[type='range'] {
   color: var(--color-text-muted);
 }
 
+#main-deck-container .card:hover,
+#weakness-stack-container .card:hover,
+#player-deck-container .card:hover,
+#destroyed-pile-container .card:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    border-color: var(--color-border);
+    cursor: default;
+}
+
 /* --- SEKCJA DEBUGOWANIA I PASKA MENU --- */
 #debug-toggle-button,
 #settings-ingame-button,
-#reset-game-button {
+#reset-game-button,
+#exit-game-button {
   background: none;
   border: none;
   padding: 5px;
@@ -358,7 +381,8 @@ input[type='range'] {
 
 #debug-toggle-button svg,
 #settings-ingame-button svg,
-#reset-game-button svg {
+#reset-game-button svg,
+#exit-game-button svg {
   width: 24px;
   height: 24px;
   fill: var(--color-text-muted);
@@ -367,7 +391,8 @@ input[type='range'] {
 
 #debug-toggle-button:hover svg,
 #settings-ingame-button:hover svg,
-#reset-game-button:hover svg {
+#reset-game-button:hover svg,
+#exit-game-button:hover svg {
   fill: var(--color-glow);
   transform: scale(1.15);
   filter: drop-shadow(0 0 4px var(--color-glow));
@@ -728,6 +753,15 @@ input[type='range'] {
     font-style: italic;
 }
 
+.choice-modal.superhero-selection-modal .card-list-container {
+    max-width: fit-content;
+}
+
+.choice-modal.superhero-selection-modal .card {
+    width: 130px;
+    height: 182px;
+}
+
 /* --- SEKCJA ROZMIARÓW SPECJALNYCH --- */
 #kick-stack-container,
 #weakness-stack-container,
@@ -765,6 +799,14 @@ input[type='range'] {
 #super-villain-stack-container .card {
   width: 130px;
   height: 182px;
+}
+
+#superhero-card-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .inspector-content {

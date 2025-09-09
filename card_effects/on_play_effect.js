@@ -8,7 +8,7 @@ function parseTypeFromTag(typeString) {
 }
 
 cardEffects.on_play_effect = async (gameState, player, effectTag, engine, details) => {
-
+    const langKey = `name_${currentLang}`;
     console.log(`[DEBUG] Uruchomiono on_play_effect z tagiem: ${effectTag}`);
 
     if (effectTag.startsWith('reduce_cost_to_defeat_sv_by_')) {
@@ -24,7 +24,12 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         const cardType = parseTypeFromTag(parts[parts.length - 1]);
         const validChoices = player.discard.filter(card => card.type === cardType);
         if (validChoices.length > 0) {
-            const chosenCardInstanceIdArr = await engine.promptPlayerChoice(`Wybierz ${cardType} do wzięcia na rękę:`, validChoices, { selectionCount: 1 });
+            // Tłumaczymy typ karty, aby pasował do zdania
+            const translatedCardType = t(`card_type_${cardType.toLowerCase().replace(' ', '_')}`);
+            // Tworzymy przetłumaczony komunikat
+            const promptText = t('choose_X_to_take_to_hand').replace('{TYPE}', translatedCardType);
+
+            const chosenCardInstanceIdArr = await engine.promptPlayerChoice(promptText, validChoices, { selectionCount: 1 });
             const chosenCardInstanceId = Array.isArray(chosenCardInstanceIdArr) ? chosenCardInstanceIdArr[0] : chosenCardInstanceIdArr;
             if (chosenCardInstanceId) {
                 const cardIndex = player.discard.findIndex(c => c.instanceId === chosenCardInstanceId);
@@ -51,11 +56,11 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         }
     } else if (effectTag === 'may_move_cards_from_discard_to_bottom_of_deck_choice_count_2') {
         if (player.discard.length === 0) return;
-        const useAbility = await engine.promptConfirmation('Czy chcesz przełożyć karty ze stosu kart odrzuconych na spód swojej talii?');
+        const useAbility = await engine.promptConfirmation(t('confirm_move_from_discard_to_bottom'));
         if (!useAbility) return;
         const maxToMove = Math.min(2, player.discard.length);
         const chosenCardIds = await engine.promptPlayerChoice(
-            `Wybierz do ${maxToMove} kart do przełożenia:`,
+            t('choose_up_to_X_cards_to_move').replace('{X}', maxToMove),
             player.discard,
             { selectionCount: maxToMove, isCancellable: true, canSelectLess: true }
         );
@@ -102,12 +107,22 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
             }
         }
     } else if (effectTag.startsWith('register_trigger_on_play_id_catwoman')) {
-        const newTrigger = {
-            condition: { on: 'play', id: 'catwoman' },
-            effectTag: 'internal_effect:dark_knight_combo'
-        };
-        player.turnTriggers.push(newTrigger);
-        console.log('Dark Knight trigger has been set.');
+        const allPlayedCards = [...player.playedCards, ...player.ongoing];
+        const catwomanAlreadyPlayed = allPlayedCards.some(card => card.id === 'catwoman');
+
+        if (catwomanAlreadyPlayed) {
+            // Jeśli Catwoman już jest w grze, uruchom efekt natychmiast
+            console.log('Dark Knight trigger: Catwoman already in play. Firing combo immediately.');
+            await engine.applyCardEffect('internal_effect:dark_knight_combo', gameState, player, {});
+        } else {
+            // Jeśli nie, ustaw trigger na przyszłość
+            const newTrigger = {
+                condition: { on: 'play', id: 'catwoman' },
+                effectTag: 'internal_effect:dark_knight_combo'
+            };
+            player.turnTriggers.push(newTrigger);
+            console.log('Dark Knight trigger has been set for future Catwoman play.');
+        }
     } else if (effectTag.startsWith('may_destroy_cards_from_hand_or_discard')) {
         const validChoices = [...player.hand, ...player.discard];
         if (validChoices.length === 0) return;
@@ -118,10 +133,10 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
             maxCount = parseInt(effectTag.split('_count_')[1], 10);
         }
         const actualMax = Math.min(maxCount, validChoices.length);
-        const useAbility = await engine.promptConfirmation(`Czy chcesz zniszczyć do ${actualMax} kart z ręki lub stosu kart odrzuconych?`);
+        const useAbility = await engine.promptConfirmation(t('confirm_destroy_up_to_X').replace('{X}', actualMax));
         if (!useAbility) return;
         const chosenCardIds = await engine.promptPlayerChoice(
-            `Wybierz do ${actualMax} kart do zniszczenia:`,
+            t('choose_up_to_X_cards_to_move').replace('{X}', actualMax),
             validChoices,
             { selectionCount: actualMax, isCancellable: true, canSelectLess: true }
         );
@@ -153,7 +168,7 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         }
     } else if (effectTag === 'may_gain_card_type_kick_from_kick_stack_to_hand') {
         if (gameState.kickStack.length > 0) {
-            const userConfirmed = await engine.promptConfirmation("Czy chcesz wziąć kartę 'Kopniak' (Kick) na rękę?");
+            const userConfirmed = await engine.promptConfirmation(t('confirm_gain_kick_to_hand'));
             if (userConfirmed) {
                 const gainedCard = gameState.kickStack.shift();
                 player.hand.push(gainedCard);
@@ -163,7 +178,11 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         const maxCost = parseInt(effectTag.split('_').pop(), 10);
         const validChoices = gameState.lineUp.filter(card => card && card.cost <= maxCost);
         if (validChoices.length > 0) {
-            const chosenCardInstanceIdArr = await engine.promptPlayerChoice(`Wybierz kartę (koszt ${maxCost} lub mniej) do zdobycia:`, validChoices, { selectionCount: 1 });
+            const chosenCardInstanceIdArr = await engine.promptPlayerChoice(
+                t('choose_card_to_gain_cost_le_X').replace('{X}', maxCost),
+                validChoices,
+                { selectionCount: 1 }
+            );
             const chosenCardInstanceId = Array.isArray(chosenCardInstanceIdArr) ? chosenCardInstanceIdArr[0] : chosenCardInstanceIdArr;
             if (chosenCardInstanceId) {
                 const cardIndex = gameState.lineUp.findIndex(c => c && c.instanceId === chosenCardInstanceId);
@@ -177,12 +196,11 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         if (!player.playedCards || player.playedCards.length === 0) return;
         const validChoices = player.playedCards.filter(c => c && c.id !== 'clayface');
         if (validChoices.length > 0) {
-            const selection = await engine.promptPlayerChoice('Wybierz kartę do zagrania ponownie:', validChoices);
+            const selection = await engine.promptPlayerChoice(t('choose_card_to_replay'), validChoices);
             const chosenCardInstanceId = Array.isArray(selection) ? selection[0] : selection;
             if (chosenCardInstanceId) {
                 const cardToReplay = validChoices.find(c => c.instanceId === chosenCardInstanceId);
                 if (cardToReplay) {
-                    console.log(`[Clayface] Replaying card: ${cardToReplay.name_pl}`);
                     await engine.playCard(cardToReplay, { isTemporary: true });
                 }
             }
@@ -191,11 +209,11 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         if (player.deck.length === 0) return;
         const topCard = player.deck[player.deck.length - 1];
         const userWantsToDestroy = await engine.promptWithCard(
-            "Czy chcesz zniszczyć tę kartę z wierzchu swojej talii?",
+            t('confirm_destroy_from_deck_top').replace('{CARD_NAME}', topCard[langKey] || topCard.name_en),
             topCard,
             [
-                { text: 'Zniszcz', value: true },
-                { text: 'Zostaw', value: false, isSecondary: true }
+                { text: t('destroy_button'), value: true },
+                { text: t('keep_button'), value: false, isSecondary: true }
             ]
         );
         if (userWantsToDestroy) {
@@ -208,7 +226,7 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
     } else if (effectTag === 'play_card_from_lineup_choice_type_equipment_hero_superpower_then_return_eot') {
         const validChoices = gameState.lineUp.filter(card => card && ['Equipment', 'Hero', 'Super Power'].includes(card.type));
         if (validChoices.length === 0) return;
-        const chosenIdArr = await engine.promptPlayerChoice('Wybierz kartę z Line-Upu do zagrania:', validChoices, { selectionCount: 1 });
+        const chosenIdArr = await engine.promptPlayerChoice(t('choose_card_from_lineup_to_play'), validChoices, { selectionCount: 1 });
         if (!chosenIdArr || chosenIdArr.length === 0) return;
         const chosenId = chosenIdArr[0];
         const cardToPlay = validChoices.find(c => c.instanceId === chosenId);
@@ -221,17 +239,31 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         }
     } else if (effectTag === 'play_top_card_from_sv_stack_no_fa_attack_then_return_top') {
         if (gameState.superVillainStack.length === 0) return;
+
         const svOriginalCard = gameState.superVillainStack.shift();
-        engine.renderGameBoard();
+        engine.renderGameBoard(); // Odśwież widok, aby pokazać pusty stos
         console.log(`J'onn J'onzz is playing ${svOriginalCard.name_pl}...`);
-        const cardToPlay = { ...svOriginalCard };
-        cardToPlay.effect_tags = cardToPlay.effect_tags.filter(tag => !tag.startsWith('first_appearance_attack'));
-        await engine.playCard(cardToPlay, { isTemporary: true });
+
+        // KROK 1: Ręcznie dodaj moc bazową pożyczonej karty
+        gameState.currentPower += svOriginalCard.power || 0;
+
+        // KROK 2: Uruchom tylko efekty "on_play" pożyczonej karty, ignorując inne
+        for (const tag of svOriginalCard.effect_tags) {
+            const effectName = tag.split(':')[0];
+            if (effectName !== 'eot_effect' && effectName !== 'cleanup_effect' && effectName !== 'first_appearance_attack') {
+                await engine.applyCardEffect(tag, gameState, player, {});
+            }
+        }
+
+        // KROK 3: Odłóż oryginalną kartę z powrotem na stos
         gameState.superVillainStack.unshift(svOriginalCard);
         console.log(`${svOriginalCard.name_pl} has been returned to the Super-Villain stack.`);
+
+        // KROK 4: Na koniec odśwież planszę, aby pokazać nową wartość mocy
+        engine.renderGameBoard();
     } else if (effectTag === 'player_chooses_even_or_odd_then_reveal_deck_top_1_if_cost_matches_choice_move_to_hand_else_discard') {
         if (player.deck.length === 0) {
-            await engine.showNotification("Twoja talia jest pusta. Efekt Two-Face nie może zostać użyty.");
+            await engine.showNotification(t('deck_is_empty_effect_cannot_be_used'));
             return;
         }
         const choseEven = await engine.promptConfirmation(
@@ -245,10 +277,10 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         let message = '';
         if (wasCorrect) {
             player.hand.push(topCard);
-            message = `${t('two_face_correct')} "${topCard[`name_${currentLang}`] || topCard.name_en}" (koszt ${topCard.cost}) ${t('two_face_to_hand')}.`;
+            message = `${t('two_face_correct')} "${topCard[langKey] || topCard.name_en}" (koszt ${topCard.cost}) ${t('two_face_to_hand')}.`;
         } else {
             player.discard.push(topCard);
-            message = `${t('two_face_incorrect')} "${topCard[`name_${currentLang}`] || topCard.name_en}" (koszt ${topCard.cost}) ${t('two_face_to_discard')}.`;
+            message = `${t('two_face_incorrect')} "${topCard[langKey] || topCard.name_en}" (koszt ${topCard.cost}) ${t('two_face_to_discard')}.`;
         }
         await engine.promptWithCard(message, topCard, [{ text: 'OK', value: true }]);
     } else if (effectTag === 'choice_either_repeatable_action_spend_3_power_buy_blind_main_deck_top_1_or_gain_1_power') {
@@ -259,7 +291,7 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         );
         if (!useSpecialAbility) {
             gameState.currentPower += 1;
-            console.log('Riddler adds +1 Power.');
+            console.log('Riddler adds +1 bonus Power.');
         } else {
             let continueLoop = true;
             while (continueLoop) {
@@ -275,7 +307,7 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
                 }
                 const topCard = gameState.mainDeck[gameState.mainDeck.length - 1];
                 const buyCard = await engine.promptWithCard(
-                    `${t('riddler_buy_prompt_start')} ${gameState.currentPower} Mocy. ${t('riddler_buy_prompt_end')}`,
+                    t('riddler_buy_prompt').replace('{POWER}', gameState.currentPower),
                     topCard,
                     [
                         { text: t('riddler_buy_confirm'), value: true },
@@ -291,6 +323,32 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
                     continueLoop = false;
                 }
             }
+        }
+    } else if (effectTag === 'reveal_deck_top_1_then_if_cost_ge_1_gain_power_3_else_gain_power_2_finally_return_revealed_to_top') {
+        let powerGained;
+        let message;
+        let topCard = null;
+        const langKey = `name_${currentLang}`;
+
+        if (player.deck.length > 0) {
+            topCard = player.deck[player.deck.length - 1];
+            powerGained = (topCard.cost >= 1) ? 3 : 2;
+            message = t('power_ring_reveal')
+                .replace('{CARD_NAME}', topCard[langKey] || topCard.name_en)
+                .replace('{COST}', topCard.cost)
+                .replace('{POWER}', powerGained);
+        } else {
+            powerGained = 2;
+            message = t('power_ring_deck_empty').replace('{POWER}', powerGained);
+        }
+
+        gameState.currentPower += powerGained;
+        console.log(message.replace('\n', ' '));
+
+        if (topCard) {
+            await engine.promptWithCard(message, topCard, [{ text: 'OK', value: true }]);
+        } else {
+            await engine.showNotification(message);
         }
     } else {
         console.warn(`Unknown on_play_effect tag: ${effectTag}`);

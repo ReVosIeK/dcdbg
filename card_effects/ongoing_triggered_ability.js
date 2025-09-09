@@ -12,7 +12,7 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
             }
             break;
         case 'on_play_first_villain_per_turn_draw_1':
-            if (playedCard.type === 'Villain' && playsOfThisType === 1) {
+            if ((playedCard.type === 'Villain' || playedCard.type === 'Super-Villain') && playsOfThisType === 1) {
                 console.log("Arkham Asylum triggered: drawing 1 card.");
                 drawCards(player, 1);
             }
