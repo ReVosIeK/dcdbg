@@ -960,6 +960,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!gameState.player) return;
         const player = gameState.player;
 
+        // KROK 1: Zapisz, które karty były w grze w tej turze.
+        const cardsThatWereInPlay = [...player.playedCards, ...player.ongoing];
+
         // --- FAZA ZWROTU KART (RETURN) ---
         if (player.borrowedCards.length > 0) {
             console.log("Returning borrowed cards to the Line-Up.");
@@ -998,11 +1001,10 @@ document.addEventListener('DOMContentLoaded', () => {
         player.discard.push(...regularPlayedCards);
         player.hand = [];
         player.playedCards = [];
-
+        
         // --- FAZA EFEKTÓW KOŃCA TURY (TERAZ DZIAŁA PRZED DOBRANIEM) ---
         console.log("Entering End-of-Turn phase.");
-        const activePlayerCards = [...player.discard, ...player.ongoing]; 
-        for (const card of activePlayerCards) {
+        for (const card of cardsThatWereInPlay) {
             for (const tag of card.effect_tags) {
                 if (tag.startsWith('eot_effect')) {
                     await applyCardEffect(tag, gameState, player, { cardWithEffect: card });
