@@ -40,6 +40,19 @@ Projekt nie wymaga skomplikowanej instalacji ani budowania.
     * *Jest to zalecane, ponieważ gra wczytuje plik `cards.json` za pomocą `fetch()`, co może powodować błędy CORS przy otwieraniu `index.html` bezpośrednio z systemu plików.*
 4.  Ciesz się grą!
 
+## ⌨️ Sterowanie
+
+* **Lewy Przycisk Myszy (LPM):**
+    * **Zagranie karty:** Kliknij na karcie w swojej ręce, aby ją zagrać.
+    * **Zakup karty:** Kliknij na karcie w Line-Upie lub na stosie "Kick", aby ją kupić, jeśli masz wystarczająco Mocy.
+    * **Interakcja z interfejsem:** Klikaj przyciski i opcje w menu oraz modalach.
+* **Prawy Przycisk Myszy (PPM):**
+    * **Inspektor Kart:** Kliknij na dowolnej karcie na planszy, aby zobaczyć jej powiększenie.
+* **Kółko Myszy (Scroll):**
+    * **Przewijanie:** Użyj kółka, aby przewijać strefę gry i swoją rękę, jeśli karty nie mieszczą się na ekranie.
+* **Przeciąganie LPM (Drag & Drop):**
+    * **Przewijanie:** Kliknij i przeciągnij w strefie gry lub w swojej ręce, aby przewijać karty w poziomie.
+
 ---
 ---
 
@@ -82,3 +95,16 @@ The project does not require a complex installation or build process.
 3.  Run a local server. The easiest way is to use the **Live Server** extension for VS Code.
     * *This is recommended because the game loads the `cards.json` file using `fetch()`, which may cause CORS errors when opening `index.html` directly from the file system.*
 4.  Enjoy the game!
+
+## ⌨️ Controls
+
+* **Left Mouse Button (LMB):**
+    * **Play a Card:** Click on a card in your hand to play it.
+    * **Buy a Card:** Click on a card in the Line-Up or the "Kick" stack to buy it if you have enough Power.
+    * **UI Interaction:** Click buttons and options in menus and modals.
+* **Right Mouse Button (RMB):**
+    * **Card Inspector:** Click on any card on the board to see a larger view of it.
+* **Mouse Wheel (Scroll):**
+    * **Scrolling:** Use the wheel to scroll through the play area and your hand if the cards do not fit on the screen.
+* **LMB Drag & Drop:**
+    * **Scrolling:** Click and drag within the play area or your hand to scroll horizontally.
