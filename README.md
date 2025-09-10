@@ -40,6 +40,8 @@ Projekt nie wymaga skomplikowanej instalacji ani budowania.
     * *Jest to zalecane, ponieważ gra wczytuje plik `cards.json` za pomocą `fetch()`, co może powodować błędy CORS przy otwieraniu `index.html` bezpośrednio z systemu plików.*
 4.  Ciesz się grą!
 
+ Lub wejdź w link: https://revosiek.github.io/dcdbg/
+
 ## ⌨️ Sterowanie
 
 * **Lewy Przycisk Myszy (LPM):**
@@ -95,6 +97,8 @@ The project does not require a complex installation or build process.
 3.  Run a local server. The easiest way is to use the **Live Server** extension for VS Code.
     * *This is recommended because the game loads the `cards.json` file using `fetch()`, which may cause CORS errors when opening `index.html` directly from the file system.*
 4.  Enjoy the game!
+
+ Or open link: https://revosiek.github.io/dcdbg/
 
 ## ⌨️ Controls
 
