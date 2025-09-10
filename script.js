@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function promptWithCard(text, cards, buttons) {
+    function promptWithCard(text, cards, buttons, title = t('decision_title')) {
         return new Promise(resolve => {
             const modal = document.getElementById('card-prompt-modal');
             const titleEl = document.getElementById('card-prompt-title');
@@ -381,18 +381,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const textEl = document.getElementById('card-prompt-text');
             const buttonsArea = document.getElementById('card-prompt-buttons');
             if(!modal || !cardArea || !textEl || !buttonsArea) { return resolve(null); }
-            titleEl.textContent = t('decision_title') || "Podejmij decyzję:";
+
+            titleEl.textContent = title; // Użyj przekazanego lub domyślnego tytułu
             textEl.textContent = text;
             cardArea.innerHTML = '';
             buttonsArea.innerHTML = '';
+
             const cardList = Array.isArray(cards) ? cards : [cards];
             cardList.forEach(card => {
                 cardArea.appendChild(createCardElement(card));
             });
+
             const cleanupAndResolve = (value) => {
                 modal.classList.add('hidden');
                 resolve(value);
             };
+
             buttons.forEach(buttonInfo => {
                 const button = document.createElement('button');
                 button.textContent = buttonInfo.text;
@@ -403,6 +407,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.addEventListener('click', () => cleanupAndResolve(buttonInfo.value), { once: true });
                 buttonsArea.appendChild(button);
             });
+
+            modal.classList.remove('hidden');
+        });
+    }
+
+    function showCardPoolNotification(text, cards) {
+        return new Promise(resolve => {
+            const modal = document.getElementById('card-pool-modal');
+            const textEl = document.getElementById('card-pool-text');
+            const cardsArea = document.getElementById('card-pool-cards');
+            const buttonsArea = document.getElementById('card-pool-buttons');
+
+            if(!modal || !textEl || !cardsArea || !buttonsArea) {
+                console.error("Card Pool Modal elements not found!");
+                return resolve();
+            }
+
+            textEl.textContent = text;
+            cardsArea.innerHTML = '';
+            buttonsArea.innerHTML = '';
+
+            cards.forEach(card => cardsArea.appendChild(createCardElement(card)));
+
+            const okButton = document.createElement('button');
+            okButton.textContent = 'OK';
+            okButton.classList.add('btn');
+            okButton.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                resolve();
+            }, { once: true });
+
+            buttonsArea.appendChild(okButton);
             modal.classList.remove('hidden');
         });
     }
@@ -886,17 +922,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 await showNotification(t('captain_cold_defeat_text'));
             }
             const cardsToReturn = gameState.cardsUnderSuperheroes.filter(data => data.tiedToVillainId === superVillain.id);
-            if (cardsToReturn.length > 0) {
-                for (const data of cardsToReturn) {
-                    gameState.player.deck.push(data.card);
-                    await promptWithCard(
-                        `Pokonałeś ${superVillain.name_pl}! Odzyskujesz tę kartę. Zostaje ona umieszczona na wierzchu Twojej talii.`,
-                        data.card,
-                        [{ text: 'OK', value: true }]
-                    );
+                if (cardsToReturn.length > 0) {
+                    for (const data of cardsToReturn) {
+                        gameState.player.deck.push(data.card);
+
+                        // POPRAWKA: Użycie klucza tłumaczenia
+                        const promptText = t('sv_defeat_recover_card_prompt').replace('{VILLAIN_NAME}', superVillain[`name_${currentLang}`] || superVillain.name_en);
+                        await promptWithCard(promptText, data.card, [{ text: 'OK', value: true }], t('notification_title'));
+                    }
+                    gameState.cardsUnderSuperheroes = gameState.cardsUnderSuperheroes.filter(data => data.tiedToVillainId !== superVillain.id);
                 }
-                gameState.cardsUnderSuperheroes = gameState.cardsUnderSuperheroes.filter(data => data.tiedToVillainId !== superVillain.id);
-            }
             gameState.currentPower -= effectiveCost;
             const defeatedVillain = gameState.superVillainStack.shift();
             await gainCard(gameState.player, defeatedVillain);
@@ -956,8 +991,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const newSuperVillain = gameState.superVillainStack[0];
             const faTag = newSuperVillain.effect_tags.find(tag => tag.startsWith('first_appearance_attack'));
             if (faTag) {
+                const langKey = `name_${currentLang}`;
                 console.log("A new Super-Villain is revealed, triggering First Appearance Attack!");
-                await showNotification(`Nowy Super-złoczyńca przybywa: ${newSuperVillain.name_pl}!\nJego Atak z Pierwszego Pojawienia zostaje aktywowany!`);
+
+                // POPRAWKA: Użycie dynamicznego klucza języka
+                const message = `${t('new_sv_arrives')} ${newSuperVillain[langKey] || newSuperVillain.name_en}!\n${t('fa_is_activated')}`;
+
+                await showNotification(message);
                 await applyCardEffect(faTag, gameState, gameState.player, { revealedCard: newSuperVillain });
             }
         }
@@ -1063,6 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 promptPlayerChoice,
                 promptConfirmation,
                 showNotification,
+                showCardPoolNotification,
                 promptWithCard,
                 playCard,
                 gainCard,

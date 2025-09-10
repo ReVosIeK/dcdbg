@@ -2,7 +2,7 @@
 
 const translations = {
     pl: {
-        // Menu
+        // === MENU & USTAWIENIA ===
         play: "Graj",
         main_menu: "Menu Główne",
         single_player: "Single Player",
@@ -18,7 +18,7 @@ const translations = {
         two_superheroes: "Dwóch Superbohaterów (Wariant)",
         choose_two_superheroes: "Wybierz dwóch Superbohaterów:",
 
-        // Plansza Gry i Strefy
+        // === PLANSZA GRY I STREFY ===
         power_display: "Moc:",
         end_turn: "Zakończ Turę",
         main_deck_zone: "Talia Główna",
@@ -33,15 +33,15 @@ const translations = {
         play_area_zone: "Strefa Gry",
         player_hand_zone: "Ręka Gracza",
         superhero_zone: "Superbohater",
-        
-        // Pasek menu
+
+        // === PASEK MENU / TOOLTIPS ===
         debug_panel_tooltip: "Panel Debugowania",
         settings_tooltip: "Ustawienia",
         reset_game_tooltip: "Resetuj Grę",
         exit_game_confirm: "Wyjdź do Menu",
         reset_game_confirm: "Czy na pewno chcesz zresetować grę? Postęp zostanie utracony.",
 
-        // Panel Debugowania
+        // === PANEL DEBUGOWANIA ===
         debug_panel_title: "Panel Debugowania",
         debug_add_power: "Dodaj Moc",
         debug_remove_power: "Odejmij Moc",
@@ -65,7 +65,7 @@ const translations = {
         debug_choose_card_of_type: "Wybierz kartę typu {TYPE}:",
         debug_end_game_alert: "KONIEC GRY (debug)!\n\nTwój ostateczny wynik: {SCORE} PZ.",
 
-        // Modale
+        // === MODALE / POTWIERDZENIA ===
         value_label: "Wartość:",
         ok_button: "OK",
         stack_contents_title: "Zawartość:",
@@ -78,8 +78,13 @@ const translations = {
         confirm: "Zatwierdź",
         decision_title: "Podejmij decyzję:",
         exit_game_confirm: "Czy na pewno chcesz wyjść do menu głównego? Postęp w grze zostanie utracony.",
-        
-        // Dynamiczne
+        card_pool_title: "Wspólna pula kart",
+        notification_title: "Powiadomienie",
+        card_revealed_title: "Odkryta Karta",
+        attack_incoming_title: "Atak!",
+
+        // === INTERAKCJE Z KARTAMI / TALIA ===
+        sv_defeat_recover_card_prompt: "Pokonałeś {VILLAIN_NAME}! Odzyskujesz tę kartę. Zostaje ona umieszczona na wierzchu Twojej talii.",
         choose_card_to_place_on_top: "Wybierz kartę, którą chcesz położyć na wierzchu talii:",
         choose_X_cards_to_discard: "Wybierz {X} karty do odrzucenia:",
         confirm_move_from_discard_to_bottom: "Czy chcesz przełożyć karty ze stosu kart odrzuconych na spód swojej talii?",
@@ -100,7 +105,13 @@ const translations = {
         add_to_lineup_prompt: "Dodaj do Line-Up:",
         destroy_card_prompt: "Wybierz typ karty do zniszczenia:",
         bought_card_placeholder: "[ Karta Kupiona ]",
+
+        // === PROMPTY BOHATERÓW / ŁOTRÓW ===
         catwoman_combo_prompt_text: "Zagrałeś Catwoman. Czy chcesz przenieść te zdobyte karty na rękę?",
+
+        fa_is_activated: "Jego Atak z Pierwszego Pojawienia zostaje aktywowany!",
+        new_sv_arrives: "Nowy Super-złoczyńca przybywa:",
+
         two_face_prompt: "Rzut monetą! Wybierz: Parzysty czy Nieparzysty koszt karty z wierzchu Twojej talii?",
         two_face_even: "Parzysty",
         two_face_odd: "Nieparzysty",
@@ -108,6 +119,7 @@ const translations = {
         two_face_incorrect: "Pudło!",
         two_face_to_hand: "trafia na Twoją rękę",
         two_face_to_discard: "trafia na stos kart odrzuconych",
+
         riddler_initial_prompt: "Chcesz użyć specjalnej zdolności Człowieka-Zagadki (kupowanie kart za Moc) czy wolisz po prostu zyskać +1 Moc?",
         riddler_special_ability: "Użyj zdolności",
         riddler_gain_power: "+1 Moc",
@@ -116,12 +128,17 @@ const translations = {
         riddler_buy_prompt: "Masz {POWER} Mocy. Czy chcesz wydać 3 Mocy, aby zdobyć tę kartę?",
         riddler_buy_confirm: "Wydaj 3 Mocy",
         riddler_buy_cancel: "Zakończ",
+        riddler_power_mismatch: "Masz {POWER} Mocy.",
+
         black_manta_destroy_it: "Zniszcz ją",
         black_manta_discard_hand: "Odrzuć rękę",
+
         brainiac_choose_cards: "Atak Brainiaca! Wybierz 2 karty z ręki, aby dodać je do wspólnej puli:",
         brainiac_cards_returned: "Karty zostały potasowane i zwrócone na Twoją rękę!",
+
         captain_cold_fa_text: "Atak Kapitana Chłoda! Twoi Superbohaterowie są zamrożeni. Ich zdolności nie działają, dopóki go nie pokonasz.",
         captain_cold_defeat_text: "Pokonałeś Kapitana Chłoda! Zdolności Twoich Superbohaterów znów działają.",
+
         darkseid_on_play_prompt: "Czy chcesz zniszczyć 2 karty z ręki, aby zyskać +5 Mocy? (Jeśli nie, zyskasz +3 Mocy)",
         darkseid_choose_2_to_destroy: "Wybierz 2 karty do zniszczenia:",
         darkseid_fa_text: "Atak Darkseida! Odrzuć 2 karty z ręki, chyba że ujawnisz z niej Łotra.",
@@ -129,21 +146,53 @@ const translations = {
         darkseid_reveal_success: "Ujawniłeś Łotra i uniknąłeś ataku!",
         darkseid_discard_all: "Masz 2 lub mniej kart. Odrzucasz całą rękę.",
         darkseid_discard_2: "Wybierz 2 karty do odrzucenia:",
+
         power_ring_reveal: 'Pierścień Mocy ujawnia: "{CARD_NAME}" (koszt {COST}).\nOtrzymujesz +{POWER} Mocy.',
         power_ring_deck_empty: 'Twoja talia jest pusta.\nOtrzymujesz +{POWER} Mocy.',
-        bat_signal_prompt: 'Wybierz Bohatera do wzięcia na rękę:',
-        king_of_atlantis_prompt: 'Wybierz kartę do zniszczenia (+3 Mocy) lub Anuluj (+1 Moc)',
-        robin_prompt: 'Wybierz Ekwipunek do wzięcia na rękę:',
-        solomon_grundy_prompt: 'Czy chcesz położyć "{CARD_NAME}" na wierzchu swojej talii?',
-        debug_next_button: 'Dalej',
-        riddler_power_mismatch: 'Masz {POWER} Mocy.',
+
+        bat_signal_prompt: "Wybierz Bohatera do wzięcia na rękę:",
+        king_of_atlantis_prompt: "Wybierz kartę do zniszczenia (+3 Mocy) lub Anuluj (+1 Moc)",
+        robin_prompt: "Wybierz Ekwipunek do wzięcia na rękę:",
+        solomon_grundy_prompt: "Czy chcesz położyć \"{CARD_NAME}\" na wierzchu swojej talii?",
+
         choose_X_to_take_to_hand: "Wybierz {TYPE} do wzięcia na rękę:",
         card_type_hero: "Bohatera",
         card_type_equipment: "Ekwipunek",
         card_type_villain: "Łotra",
         card_type_super_power: "Supermoc",
+
+        deathstroke_no_targets: "W Line-Upie nie ma żadnych Bohaterów ani Łotrów. Otrzymujesz +3 Mocy.",
+        deathstroke_on_play_prompt: "Czy chcesz zdobyć Bohatera lub Łotra z Line-Upu? (Jeśli nie, otrzymasz +3 Mocy)",
+        deathstroke_choose_card_to_gain: "Wybierz Bohatera lub Łotra do zdobycia:",
+        deathstroke_fa_no_targets: "Atak Deathstroke'a! Nie masz w ręce ani na stosie odrzuconych żadnych Bohaterów, Supermocy ani Ekwipunków do zniszczenia.",
+        deathstroke_fa_reveal_hand: "Atak Deathstroke'a! Ujawnij swoją rękę. Musisz zniszczyć jednego Bohatera, Supermoc lub Ekwipunek.",
+        deathstroke_fa_must_destroy: "Wybierz kartę do zniszczenia (obowiązkowe):",
+
+        sinestro_reveal_hero: "Sinestro ujawnia Bohatera: \"{CARD_NAME}\". Otrzymujesz +3 Mocy, a karta zostaje zniszczona.",
+        sinestro_reveal_other: "Sinestro ujawnia: \"{CARD_NAME}\". Karta zostaje dodana do Twojej ręki.",
+        sinestro_fa_reveal_hand: "Atak Sinestro! Ujawnij swoją rękę. Musisz odrzucić jedną kartę za każdego Bohatera, którego posiadasz.",
+        sinestro_fa_no_heroes: "Nie masz żadnych Bohaterów na ręce. Atak Sinestro nie ma efektu.",
+        sinestro_fa_discard_X: "Masz {X} Bohaterów na ręce. Wybierz {X} karty do odrzucenia:",
+
+        parallax_fa_reveal_hand: "Atak Parallaxa! Ujawnij swoją rękę. Odrzucasz wszystkie karty o koszcie 2 lub mniejszym.",
+        parallax_fa_no_targets: "Nie masz na ręce żadnych kart o koszcie 2 lub mniejszym.",
+        parallax_fa_discarded: "Atak Parallaxa! Odrzucasz następujące karty z ręki:",
+
+        joker_fa_solo_effect: "Atak Jokera! W grze solo nie masz komu przekazać karty. Atak nie ma efektu.",
+
+        anti_monitor_no_cards_to_destroy: "Line-Up jest pusty. Nie ma kart do zniszczenia.",
+        anti_monitor_choose_to_destroy: "Wybierz karty z Banku Kart, które chcesz zniszczyć:",
+        anti_monitor_fa_no_cards: "Atak Anti-Monitora! Nie masz na ręce żadnych kart o koszcie 1 lub większym.",
+        anti_monitor_fa_reveal_hand: "Atak Anti-Monitora! Ujawnij swoją rękę. Musisz wybrać jedną kartę (koszt 1+), aby dodać ją do Banku Kart.",
+        anti_monitor_fa_choose_card: "Wybierz kartę, którą chcesz dodać do Banku Kart",
+        anti_monitor_fa_no_space: "W Banku KArt nie ma wolnego miejsca! Twoja karta pozostaje na ręce.",
+
+        lex_luthor_fa_no_villains: "Atak Lexa Luthora! W Banku Kart nie ma żadnych Łotrów. Atak nie ma efektu.",
+        lex_luthor_fa_gain_weakness: "Atak Lexa Luthora! Otrzymujesz {X} karty Słabości, po jednej za każdego Łotra w Banku Kart.",
+
     },
     en: {
+        // === MAIN MENU & SETTINGS ===
         play: "Play",
         main_menu: "Main Menu",
         single_player: "Single Player",
@@ -158,8 +207,12 @@ const translations = {
         one_superhero: "One Superhero (Standard)",
         two_superheroes: "Two Superheroes (Variant)",
         choose_two_superheroes: "Choose two Superheroes:",
+
+        // === GAMEPLAY UI ===
         power_display: "Power:",
         end_turn: "End Turn",
+
+        // === ZONES ===
         main_deck_zone: "Main Deck",
         destroyed_pile_zone: "Destroyed Pile",
         locations_zone: "Locations",
@@ -172,10 +225,14 @@ const translations = {
         play_area_zone: "Play Area",
         player_hand_zone: "Player Hand",
         superhero_zone: "Superhero",
+
+        // === TOOLBAR / TOOLTIPS ===
         debug_panel_tooltip: "Debug Panel",
         settings_tooltip: "Settings",
         reset_game_tooltip: "Reset Game",
         exit_game_tooltip: "Exit to Menu",
+
+        // === DEBUG PANEL ===
         debug_panel_title: "Debug Panel",
         debug_add_power: "Add Power",
         debug_remove_power: "Remove Power",
@@ -196,6 +253,8 @@ const translations = {
         debug_sv_pos_second: "Second from top",
         debug_choose_card_of_type: "Choose a card of type {TYPE}:",
         debug_end_game_alert: "GAME OVER (debug)!\n\nYour final score: {SCORE} VP.",
+
+        // === GENERIC DIALOGS & BUTTONS ===
         value_label: "Value:",
         ok_button: "OK",
         stack_contents_title: "Contents:",
@@ -206,16 +265,19 @@ const translations = {
         yes: "Yes",
         no: "No",
         cancel: "Cancel",
-        choose_card_title: "Choose a card:",
         confirm: "Confirm",
+        choose_card_title: "Choose a card:",
         decision_title: "Make a decision:",
         reset_game_confirm: "Are you sure you want to reset the game? All progress will be lost.",
         exit_game_confirm: "Are you sure you want to exit to the main menu? Your game progress will be lost.",
         enter_value_title: "Enter value",
-        value_label: "Value:",
-        ok_button: "OK",
-        stack_contents_title: "Contents:",
-        empty_stack_text: "This stack is empty.",
+        card_pool_title: "Common Card Pool",
+        notification_title: "Notification",
+        card_revealed_title: "Card Revealed",
+        attack_incoming_title: "Attack!",
+
+        // === CARD / DECK INTERACTIONS ===
+        sv_defeat_recover_card_prompt: "You defeated {VILLAIN_NAME}! You recover this card. It is placed on top of your deck.",
         choose_card_to_place_on_top: "Choose a card to place on top of your deck:",
         choose_X_cards_to_discard: "Choose {X} cards to discard:",
         confirm_move_from_discard_to_bottom: "Do you want to move cards from your discard pile to the bottom of your deck?",
@@ -236,7 +298,14 @@ const translations = {
         add_to_lineup_prompt: "Add to Line-Up:",
         destroy_card_prompt: "Choose card type to destroy:",
         bought_card_placeholder: "[ Card Bought ]",
+
+        // === HERO / VILLAIN PROMPTS ===
+        
         catwoman_combo_prompt_text: "You played Catwoman. Do you want to move these gained cards to your hand?",
+
+        fa_is_activated: "His First Appearance - Attack is activated!",
+        new_sv_arrives: "A new Super-Villain arrives:",
+
         two_face_prompt: "Coin toss! Choose: Even or Odd cost for the top card of your deck?",
         two_face_even: "Even",
         two_face_odd: "Odd",
@@ -244,6 +313,7 @@ const translations = {
         two_face_incorrect: "You missed!",
         two_face_to_hand: "goes to your hand",
         two_face_to_discard: "goes to the discard pile",
+
         riddler_initial_prompt: "Do you want to use Riddler's special ability (spending Power for cards) or just gain +1 Power instead?",
         riddler_special_ability: "Use ability",
         riddler_gain_power: "+1 Power",
@@ -252,12 +322,17 @@ const translations = {
         riddler_buy_prompt: "You have {POWER} Power. Do you want to spend 3 Power to gain this card?",
         riddler_buy_confirm: "Spend 3 Power",
         riddler_buy_cancel: "Stop",
+        riddler_power_mismatch: "You have {POWER} Power.",
+
         black_manta_destroy_it: "Destroy it",
         black_manta_discard_hand: "Discard your hand",
+
         brainiac_choose_cards: "Brainiac's Attack! Choose 2 cards from your hand to add to the card pool:",
         brainiac_cards_returned: "The cards have been shuffled and returned to your hand!",
+
         captain_cold_fa_text: "Captain Cold's Attack! Your Super Heroes are frozen. Their abilities are disabled until you defeat him.",
         captain_cold_defeat_text: "You defeated Captain Cold! Your Super Hero abilities are active again.",
+
         darkseid_on_play_prompt: "Do you want to destroy 2 cards from your hand to gain +5 Power? (Otherwise you gain +3 Power)",
         darkseid_choose_2_to_destroy: "Choose 2 cards to destroy:",
         darkseid_fa_text: "Darkseid's Attack! Discard 2 cards from your hand, unless you reveal a Villain from it.",
@@ -265,20 +340,49 @@ const translations = {
         darkseid_reveal_success: "You revealed a Villain and avoided the attack!",
         darkseid_discard_all: "You have 2 or fewer cards. You discard your entire hand.",
         darkseid_discard_2: "Choose 2 cards to discard:",
-        bat_signal_prompt: 'Choose a Hero to take into your hand:',
-        king_of_atlantis_prompt: 'Choose a card to destroy (+3 Power) or Cancel (+1 Power)',
-        robin_prompt: 'Choose an Equipment to take into your hand:',
-        solomon_grundy_prompt: 'Do you want to place "{CARD_NAME}" on top of your deck?',
-        debug_next_button: 'Next',
-        riddler_power_mismatch: 'You have {POWER} Power.',
-        power_ring_reveal: 'Power Ring reveals: "{CARD_NAME}" (cost {COST}).\nYou gain +{POWER} Power.',
-        power_ring_deck_empty: 'Your deck is empty.\nYou gain +{POWER} Power.',
+
+        bat_signal_prompt: "Choose a Hero to take into your hand:",
+        king_of_atlantis_prompt: "Choose a card to destroy (+3 Power) or Cancel (+1 Power)",
+        robin_prompt: "Choose an Equipment to take into your hand:",
+        solomon_grundy_prompt: "Do you want to place \"{CARD_NAME}\" on top of your deck?",
+
+        power_ring_reveal: "Power Ring reveals: \"{CARD_NAME}\" (cost {COST}).\nYou gain +{POWER} Power.",
+        power_ring_deck_empty: "Your deck is empty.\nYou gain +{POWER} Power.",
+
         choose_X_to_take_to_hand: "Choose a {TYPE} to take into your hand:",
         card_type_hero: "Hero",
         card_type_equipment: "Equipment",
         card_type_villain: "Villain",
         card_type_super_power: "Super Power",
-        robin_prompt: "Choose an Equipment to take into your hand:",
+
+        deathstroke_no_targets: "There are no Heroes or Villains in the Line-Up. You gain +3 Power instead.",
+        deathstroke_on_play_prompt: "Do you want to gain a Hero or Villain from the Line-Up? (If not, you gain +3 Power)",
+        deathstroke_choose_card_to_gain: "Choose a Hero or Villain to gain:",
+        deathstroke_fa_no_targets: "Deathstroke's Attack! You have no Heroes, Super Powers, or Equipment in your hand or discard pile to destroy.",
+        deathstroke_fa_reveal_hand: "Deathstroke's Attack! Reveal your hand. You must destroy a Hero, Super Power, or Equipment.",
+        deathstroke_fa_must_destroy: "Choose a card to destroy (mandatory):",
+
+        sinestro_reveal_hero: "Sinestro reveals a Hero: \"{CARD_NAME}\". You gain +3 Power and the card is destroyed.",
+        sinestro_reveal_other: "Sinestro reveals: \"{CARD_NAME}\". The card is added to your hand.",
+        sinestro_fa_reveal_hand: "Sinestro's Attack! Reveal your hand. You must discard one card for each Hero you have.",
+        sinestro_fa_no_heroes: "You have no Heroes in your hand. Sinestro's Attack has no effect.",
+        sinestro_fa_discard_X: "You have {X} Heroes in your hand. Choose {X} cards to discard:",
+
+        parallax_fa_reveal_hand: "Parallax's Attack! Reveal your hand. You discard all cards with a cost of 2 or less.",
+        parallax_fa_no_targets: "You have no cards in your hand with a cost of 2 or less.",
+        parallax_fa_discarded: "Parallax's Attack! You discard the following cards from your hand:",
+
+        joker_fa_solo_effect: "Joker's Attack! In solo mode, you have no one to pass a card to. The attack has no effect.",
+
+        anti_monitor_no_cards_to_destroy: "The Line-Up is empty. There are no cards to destroy.",
+        anti_monitor_choose_to_destroy: "Choose cards from the Line-Up to destroy:",
+        anti_monitor_fa_no_cards: "Anti-Monitor's Attack! You have no cards in your hand with a cost of 1 or greater.",
+        anti_monitor_fa_reveal_hand: "Anti-Monitor's Attack! Reveal your hand. You must choose one card (cost 1+) to add to the Line-Up.",
+        anti_monitor_fa_choose_card: "Choose a card to add to the Line-Up:",
+        anti_monitor_fa_no_space: "There is no empty space in the Line-Up! Your card remains in your hand.",
+
+        lex_luthor_fa_no_villains: "Lex Luthor's Attack! There are no Villains in the Line-Up. The attack has no effect.",
+        lex_luthor_fa_gain_weakness: "Lex Luthor's Attack! You gain {X} Weakness card(s), one for each Villain in the Line-Up.",
     }
 };
 

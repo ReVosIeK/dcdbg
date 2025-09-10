@@ -1,4 +1,7 @@
+// card_effects/conditional_effect.js
+
 cardEffects.conditional_effect = async (gameState, player, effectTag, engine) => {
+
     if (effectTag === 'if_first_card_played_this_turn_then_discard_hand_draw_5_else_gain_power_1') {
         const isFirstCard = (player.playedCards.length + player.ongoing.length) === 1;
         if (isFirstCard) {
@@ -38,6 +41,33 @@ cardEffects.conditional_effect = async (gameState, player, effectTag, engine) =>
                 player.hand = player.hand.filter(c => !chosenCardIds.includes(c.instanceId));
                 gameState.destroyedPile.push(...cardsToDestroy);
                 gameState.currentPower += 5;
+            }
+        } else {
+            gameState.currentPower += 3;
+        }
+    } else if (effectTag === 'may_gain_card_from_lineup_choice_type_hero_or_villain_else_gain_power_3') {
+        const validChoices = gameState.lineUp.filter(card => card && (card.type === 'Hero' || card.type === 'Villain'));
+        if (validChoices.length === 0) {
+            gameState.currentPower += 3;
+            await engine.showNotification(t('deathstroke_no_targets'));
+            return;
+        }
+        const useAbility = await engine.promptConfirmation(t('deathstroke_on_play_prompt'));
+        if (useAbility) {
+            const chosenCardIdArr = await engine.promptPlayerChoice(
+                t('deathstroke_choose_card_to_gain'),
+                validChoices,
+                { selectionCount: 1, isCancellable: true }
+            );
+            if (chosenCardIdArr && chosenCardIdArr.length > 0) {
+                const chosenId = chosenCardIdArr[0];
+                const cardIndex = gameState.lineUp.findIndex(c => c && c.instanceId === chosenId);
+                if (cardIndex !== -1) {
+                    const [gainedCard] = gameState.lineUp.splice(cardIndex, 1, null);
+                    await engine.gainCard(player, gainedCard);
+                }
+            } else {
+                gameState.currentPower += 3;
             }
         } else {
             gameState.currentPower += 3;

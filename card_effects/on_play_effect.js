@@ -9,7 +9,7 @@ function parseTypeFromTag(typeString) {
 
 cardEffects.on_play_effect = async (gameState, player, effectTag, engine, details) => {
     const langKey = `name_${currentLang}`;
-    console.log(`[DEBUG] Uruchomiono on_play_effect z tagiem: ${effectTag}`);
+    console.log(`[DEBUG] Runing on_play_effect with tag: ${effectTag}`);
 
     if (effectTag.startsWith('reduce_cost_to_defeat_sv_by_')) {
         const parts = effectTag.split('_');
@@ -24,9 +24,7 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         const cardType = parseTypeFromTag(parts[parts.length - 1]);
         const validChoices = player.discard.filter(card => card.type === cardType);
         if (validChoices.length > 0) {
-            // Tłumaczymy typ karty, aby pasował do zdania
             const translatedCardType = t(`card_type_${cardType.toLowerCase().replace(' ', '_')}`);
-            // Tworzymy przetłumaczony komunikat
             const promptText = t('choose_X_to_take_to_hand').replace('{TYPE}', translatedCardType);
 
             const chosenCardInstanceIdArr = await engine.promptPlayerChoice(promptText, validChoices, { selectionCount: 1 });
@@ -346,10 +344,102 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         console.log(message.replace('\n', ' '));
 
         if (topCard) {
-            await engine.promptWithCard(message, topCard, [{ text: 'OK', value: true }]);
+            await engine.promptWithCard(message, topCard, [{ text: 'OK', value: true }], t('card_revealed_title'));
         } else {
             await engine.showNotification(message);
         }
+    } else if (effectTag === 'may_gain_card_from_lineup_choice_type_hero_or_villain_else_gain_power_3') {
+    const validChoices = gameState.lineUp.filter(card => card && (card.type === 'Hero' || card.type === 'Villain'));
+
+    if (validChoices.length === 0) {
+        gameState.bonusPower += 3;
+        await engine.showNotification(t('deathstroke_no_targets'));
+        return;
+    }
+
+    const useAbility = await engine.promptConfirmation(t('deathstroke_on_play_prompt'));
+
+    if (useAbility) {
+        const chosenCardIdArr = await engine.promptPlayerChoice(
+            t('deathstroke_choose_card_to_gain'),
+            validChoices,
+            { selectionCount: 1, isCancellable: true }
+        );
+
+        if (chosenCardIdArr && chosenCardIdArr.length > 0) {
+            const chosenId = chosenCardIdArr[0];
+            const cardIndex = gameState.lineUp.findIndex(c => c && c.instanceId === chosenId);
+            if (cardIndex !== -1) {
+                const [gainedCard] = gameState.lineUp.splice(cardIndex, 1, null);
+                await engine.gainCard(player, gainedCard);
+            }
+        } else {
+            gameState.bonusPower += 3;
+        }
+    } else {
+        gameState.bonusPower += 3;
+    }
+    } else if (effectTag === 'reveal_main_deck_top_1_then_if_type_hero_gain_power_3_and_destroy_revealed_else_move_revealed_to_hand') {
+        if (gameState.mainDeck.length === 0) {
+            await engine.showNotification(t('deck_is_empty_effect_cannot_be_used'));
+            return;
+        }
+
+        const topCard = gameState.mainDeck.pop();
+        let message = '';
+
+        if (topCard.type === 'Hero') {
+            gameState.bonusPower += 3;
+            gameState.destroyedPile.push(topCard);
+            message = t('sinestro_reveal_hero').replace('{CARD_NAME}', topCard[`name_${currentLang}`] || topCard.name_en);
+        } else {
+            player.hand.push(topCard);
+            message = t('sinestro_reveal_other').replace('{CARD_NAME}', topCard[`name_${currentLang}`] || topCard.name_en);
+        }
+        
+        await engine.promptWithCard(message, topCard, [{ text: 'OK', value: true }]);
+
+        } else if (effectTag === 'double_total_power_this_turn') {
+            player.turnFlags.powerIsDoubled = true;
+            console.log("Parallax effect activated: Power will be doubled this turn.");
+            gameState.currentPower *= 2;
+
+        } else if (effectTag === 'each_opponent_chooses_discard_1_random_from_hand_or_active_player_draws_1') {
+            console.log("Joker's on-play effect: No opponents to target in solo mode.");
+
+    } else if (effectTag === 'destroy_any_number_of_cards_from_lineup_choice_then_refill_lineup') {
+        const validChoices = gameState.lineUp.filter(c => c !== null);
+        if (validChoices.length === 0) {
+            await engine.showNotification(t('anti_monitor_no_cards_to_destroy'));
+            return;
+        }
+
+        const chosenCardIds = await engine.promptPlayerChoice(
+            t('anti_monitor_choose_to_destroy'),
+            validChoices,
+            { selectionCount: validChoices.length, isCancellable: true, canSelectLess: true }
+        );
+
+        if (chosenCardIds && chosenCardIds.length > 0) {
+            const cardsToDestroy = [];
+            gameState.lineUp = gameState.lineUp.map(card => {
+                if (card && chosenCardIds.includes(card.instanceId)) {
+                    cardsToDestroy.push(card);
+                    return null;
+                }
+                return card;
+            });
+
+            gameState.destroyedPile.push(...cardsToDestroy);
+            console.log(`Anti-Monitor destroyed ${cardsToDestroy.length} card(s) from the Line-Up.`);
+
+            for (let i = 0; i < gameState.lineUp.length; i++) {
+                if (gameState.lineUp[i] === null && gameState.mainDeck.length > 0) {
+                    gameState.lineUp[i] = gameState.mainDeck.pop();
+                }
+            }
+        }
+
     } else {
         console.warn(`Unknown on_play_effect tag: ${effectTag}`);
     }
