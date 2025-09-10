@@ -108,6 +108,7 @@ const translations = {
 
         // === PROMPTY BOHATERÓW / ŁOTRÓW ===
         catwoman_combo_prompt_text: "Zagrałeś Catwoman. Czy chcesz przenieść te zdobyte karty na rękę?",
+        confirm_place_on_top_deck: "Czy chcesz położyć \"{CARD_NAME}\" na wierzchu swojej talii?",
 
         fa_is_activated: "Jego Atak z Pierwszego Pojawienia zostaje aktywowany!",
         new_sv_arrives: "Nowy Super-złoczyńca przybywa:",
@@ -302,6 +303,8 @@ const translations = {
         // === HERO / VILLAIN PROMPTS ===
         
         catwoman_combo_prompt_text: "You played Catwoman. Do you want to move these gained cards to your hand?",
+        confirm_place_on_top_deck: "Do you want to place \"{CARD_NAME}\" on top of your deck?",
+
 
         fa_is_activated: "His First Appearance - Attack is activated!",
         new_sv_arrives: "A new Super-Villain arrives:",
