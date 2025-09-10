@@ -304,7 +304,7 @@ const translations = {
         
         catwoman_combo_prompt_text: "You played Catwoman. Do you want to move these gained cards to your hand?",
         confirm_place_on_top_deck: "Do you want to place \"{CARD_NAME}\" on top of your deck?",
-
+//
 
         fa_is_activated: "His First Appearance - Attack is activated!",
         new_sv_arrives: "A new Super-Villain arrives:",
