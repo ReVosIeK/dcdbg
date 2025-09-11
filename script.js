@@ -1,3 +1,5 @@
+import { AttackManager } from './attackSystem.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- SELEKTORY ELEMENTÓW DOM ---
@@ -141,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if(debug.drawCard) debug.drawCard.addEventListener('click', () => { if (!gameState.player) return; drawCards(gameState.player, 1); renderGameBoard(); });
+        if(debug.drawCard) debug.drawCard.addEventListener('click', () => { if (!gameState.player) return; drawCards(gameState.player, 1, gameState); renderGameBoard(); });
         if(debug.endGame) debug.endGame.addEventListener('click', () => {
             const score = calculatePlayerScore(gameState.player);
             alert(t('debug_end_game_alert').replace('{SCORE}', score));
@@ -517,9 +519,8 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'addToLineup':
                 cardData = gameState.allCards.find(c => c.id === value);
                 if (cardData) {
-                    const emptySlotIndex = gameState.lineUp.findIndex(slot => slot === null);
-                    if (emptySlotIndex !== -1) gameState.lineUp[emptySlotIndex] = {...cardData, instanceId: `${value}_${Date.now()}`};
-                    else alert("Brak wolnych miejsc w Line-Up!");
+                    gameState.lineUp.push({...cardData, instanceId: `${value}_${Date.now()}`});
+                    console.log(`DEBUG: Added ${cardData.name_pl} to the Line-Up, expanding it to ${gameState.lineUp.length} cards.`);
                 }
                 break;
             case 'destroyCard':
@@ -798,10 +799,23 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 7; i++) gameState.player.deck.push({...punches, instanceId: `punch_${i}`});
         for (let i = 0; i < 3; i++) gameState.player.deck.push({...vulnerabilities, instanceId: `vulnerability_${i}`});
         gameState.player.deck = shuffle(gameState.player.deck);
-        drawCards(gameState.player, 5);
+        drawCards(gameState.player, 5, gameState);
     }
     
     async function playCard(cardToPlay, options = {}) {
+
+        const engine = {
+        promptPlayerChoice,
+        promptConfirmation,
+        showNotification,
+        promptWithCard,
+        showCardPoolNotification,
+        playCard,
+        gainCard,
+        applyCardEffect,
+        renderGameBoard
+        };
+
         const isTemporary = options.isTemporary || false;
         if (!isTemporary) {
             if (cardToPlay.type === 'Location') {
@@ -810,18 +824,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameState.player.playedCards.push(cardToPlay);
             }
         }
-        
+
         const currentPlays = gameState.player.playedCardTypeCounts.get(cardToPlay.type) || 0;
         gameState.player.playedCardTypeCounts.set(cardToPlay.type, currentPlays + 1);
 
         gameState.currentPower += cardToPlay.power || 0;
 
         if (!gameState.superheroAbilitiesDisabled && gameState.player.superheroes.some(h => h.id === 'cyborg') && !gameState.player.turnFlags.cyborgAbilityUsed && cardToPlay.type === 'Equipment') {
-            drawCards(gameState.player, 1, { source: 'ability' });
+            drawCards(gameState.player, 1, gameState, { source: 'ability' });
             gameState.player.turnFlags.cyborgAbilityUsed = true;
         }
 
-        // NAJPIERW URUCHOM WSZYSTKIE EFEKTY KARTY
         for (const locationCard of gameState.player.ongoing) {
             if (locationCard.effect_tags && locationCard.effect_tags.some(tag => tag.startsWith('ongoing_triggered_ability'))) {
                 for (const tag of locationCard.effect_tags) {
@@ -829,15 +842,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        
+
         for (const tag of cardToPlay.effect_tags) {
             const effectName = tag.split(':')[0];
-            if (effectName !== 'eot_effect' && effectName !== 'cleanup_effect' && effectName !== 'first_appearance_attack') {
+
+            if (effectName === 'attack') {
+                await AttackManager.handleAttack({ attackingCard: cardToPlay, source: 'player' }, gameState, engine);
+            } else if (effectName !== 'eot_effect' && effectName !== 'cleanup_effect' && effectName !== 'first_appearance_attack' && effectName !== 'defense_effect') {
                 await applyCardEffect(tag, gameState, gameState.player, {});
             }
         }
-        
-        // DOPIERO TERAZ SPRAWDŹ TRIGGERY
+
         await checkTurnTriggers(cardToPlay);
     }
 
@@ -987,6 +1002,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function triggerFirstAppearanceAttack() {
+
+        const engine = {
+        promptPlayerChoice,
+        promptConfirmation,
+        showNotification,
+        promptWithCard,
+        showCardPoolNotification,
+        playCard,
+        gainCard,
+        applyCardEffect,
+        renderGameBoard
+        };
+        
         if (gameState.superVillainStack.length > 0) {
             const newSuperVillain = gameState.superVillainStack[0];
             const faTag = newSuperVillain.effect_tags.find(tag => tag.startsWith('first_appearance_attack'));
@@ -998,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const message = `${t('new_sv_arrives')} ${newSuperVillain[langKey] || newSuperVillain.name_en}!\n${t('fa_is_activated')}`;
 
                 await showNotification(message);
-                await applyCardEffect(faTag, gameState, gameState.player, { revealedCard: newSuperVillain });
+                await AttackManager.handleAttack({ attackingCard: newSuperVillain, source: 'super_villain' }, gameState, engine)
             }
         }
     }
@@ -1071,11 +1099,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameState.superheroAbilitiesDisabled && player.superheroes.some(h => h.id === 'wonder_woman')) {
             const villainsGained = player.gainedCardsThisTurn.filter(c => c.type === 'Villain' || c.type === 'Super-Villain').length;
             if (villainsGained > 0) {
-                drawCards(player, villainsGained, { source: 'ability' });
+                drawCards(player, villainsGained, gameState, { source: 'ability' });
+
             }
         }
         
-        drawCards(player, 5); // Dobranie nowej ręki
+        drawCards(player, 5, gameState);
         
         // Reset flag i stanu na nową turę
         player.playedCardTypeCounts.clear();
@@ -1098,19 +1127,22 @@ document.addEventListener('DOMContentLoaded', () => {
     async function applyCardEffect(tag, gameState, player, details = {}) {
         const [effectName, ...params] = tag.split(':');
         const allParams = params.join(':');
+        
+        const engine = {
+            promptPlayerChoice,
+            promptConfirmation,
+            showNotification,
+            promptWithCard,
+            showCardPoolNotification,
+            playCard,
+            gainCard,
+            applyCardEffect,
+            renderGameBoard
+        };
+
         if (cardEffects && typeof cardEffects[effectName] === 'function') {
-            const engine = {
-                promptPlayerChoice,
-                promptConfirmation,
-                showNotification,
-                showCardPoolNotification,
-                promptWithCard,
-                playCard,
-                gainCard,
-                applyCardEffect,
-                renderGameBoard
-            };
-            await cardEffects[effectName](gameState, player, allParams, engine, details);
+            // Przekazujemy 'engine' do każdej funkcji efektu
+            return await cardEffects[effectName](gameState, player, allParams, engine, details);
         } else {
             console.warn(`Effect '${effectName}' not found in effects.js`);
         }

@@ -149,18 +149,24 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
     } else if (effectTag === 'may_destroy_cards_from_discard_choice_count_le_2') {
         const validChoices = [...player.discard];
         if (validChoices.length === 0) return;
+
         const maxToDestroy = Math.min(2, validChoices.length);
-        const useAbility = await engine.promptConfirmation(`Czy chcesz zniszczyć do ${maxToDestroy} kart ze swojego stosu kart odrzuconych?`);
+        const useAbility = await engine.promptConfirmation(
+            t('atrocitus_on_play_prompt').replace('{X}', maxToDestroy)
+        );
         if (!useAbility) return;
+
         const chosenCardIds = await engine.promptPlayerChoice(
-            `Wybierz do ${maxToDestroy} kart do zniszczenia:`,
+            t('atrocitus_choose_to_destroy').replace('{X}', maxToDestroy),
             validChoices,
             { selectionCount: maxToDestroy, isCancellable: true, canSelectLess: true }
         );
+
         if (chosenCardIds && chosenCardIds.length > 0) {
             const cardsToDestroy = validChoices.filter(card => chosenCardIds.includes(card.instanceId));
             gameState.destroyedPile.push(...cardsToDestroy);
             player.discard = player.discard.filter(card => !chosenCardIds.includes(card.instanceId));
+
             console.log(`Destroyed ${cardsToDestroy.length} card(s) from discard.`);
             engine.renderGameBoard();
         }

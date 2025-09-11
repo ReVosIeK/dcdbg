@@ -105,6 +105,11 @@ const translations = {
         add_to_lineup_prompt: "Dodaj do Line-Up:",
         destroy_card_prompt: "Wybierz typ karty do zniszczenia:",
         bought_card_placeholder: "[ Karta Kupiona ]",
+        choose_defense_card_prompt: "Nadchodzi atak! Wybierz kartę Obrony z ręki (lub Anuluj, aby przyjąć atak):",
+        attack_defended_notification: "Atak został zablokowany dzięki karcie {CARD_NAME}!",
+        attack_hit_gain_weakness: "Atak trafia! Otrzymujesz kartę Słabości na stos kart odrzuconych.",
+        hand_discarded_notification: "Twoja ręka została odrzucona.",
+        card_destroyed_notification: "Zniszczyłeś \"{CARD_NAME}\".",
 
         // === PROMPTY BOHATERÓW / ŁOTRÓW ===
         catwoman_combo_prompt_text: "Zagrałeś Catwoman. Czy chcesz przenieść te zdobyte karty na rękę?",
@@ -133,6 +138,8 @@ const translations = {
 
         black_manta_destroy_it: "Zniszcz ją",
         black_manta_discard_hand: "Odrzuć rękę",
+        black_manta_fa_discarded: "Atak Czarnej Manty! Wierzchnia karta z Twojej talii została odrzucona:",
+        black_manta_fa_prompt: "Odrzucona karta kosztuje 1 lub więcej. Wybierz opcję:",
 
         brainiac_choose_cards: "Atak Brainiaca! Wybierz 2 karty z ręki, aby dodać je do wspólnej puli:",
         brainiac_cards_returned: "Karty zostały potasowane i zwrócone na Twoją rękę!",
@@ -191,6 +198,11 @@ const translations = {
         lex_luthor_fa_no_villains: "Atak Lexa Luthora! W Banku Kart nie ma żadnych Łotrów. Atak nie ma efektu.",
         lex_luthor_fa_gain_weakness: "Atak Lexa Luthora! Otrzymujesz {X} karty Słabości, po jednej za każdego Łotra w Banku Kart.",
 
+        atrocitus_on_play_prompt: "Czy chcesz zniszczyć do {X} kart ze swojego stosu kart odrzuconych?",
+        atrocitus_choose_to_destroy: "Wybierz do {X} kart do zniszczenia ze stosu kart odrzuconych:",
+        atrocitus_fa_no_cards: "Twoja ręka jest pusta. Atak Atrocitusa nie ma efektu.",
+        atrocitus_fa_card_taken: "Atak Atrocitusa! Zostałeś zmuszony do odłożenia tej karty pod swojego Superbohatera. Odzyskasz ją po pokonaniu Atrocitusa.",
+
     },
     en: {
         // === MAIN MENU & SETTINGS ===
@@ -202,7 +214,7 @@ const translations = {
         language: "Language:",
         ui_scaling: "UI Scaling:",
         back_to_menu: "Back",
-        polish_descriptions_label: "(PC Only) Polish card descriptions:",
+        polish_descriptions_label: "Polish card descriptions:",
         polish_ability_header: "Ability (PL)",
         how_to_play: "How do you want to play?",
         one_superhero: "One Superhero (Standard)",
@@ -299,6 +311,11 @@ const translations = {
         add_to_lineup_prompt: "Add to Line-Up:",
         destroy_card_prompt: "Choose card type to destroy:",
         bought_card_placeholder: "[ Card Bought ]",
+        choose_defense_card_prompt: "Incoming attack! Choose a Defense card from your hand to use (or Cancel to take the hit):",
+        attack_defended_notification: "Attack defended with {CARD_NAME}!",
+        attack_hit_gain_weakness: "The attack hits! You gain a Weakness card to your discard pile.",
+        hand_discarded_notification: "Your hand has been discarded.",
+        card_destroyed_notification: "You have destroyed \"{CARD_NAME}\".",
 
         // === HERO / VILLAIN PROMPTS ===
         
@@ -329,6 +346,8 @@ const translations = {
 
         black_manta_destroy_it: "Destroy it",
         black_manta_discard_hand: "Discard your hand",
+        black_manta_fa_discarded: "Black Manta's Attack! The top card of your deck was discarded:",
+        black_manta_fa_prompt: "The discarded card costs 1 or more. Choose an option:",
 
         brainiac_choose_cards: "Brainiac's Attack! Choose 2 cards from your hand to add to the card pool:",
         brainiac_cards_returned: "The cards have been shuffled and returned to your hand!",
@@ -386,6 +405,11 @@ const translations = {
 
         lex_luthor_fa_no_villains: "Lex Luthor's Attack! There are no Villains in the Line-Up. The attack has no effect.",
         lex_luthor_fa_gain_weakness: "Lex Luthor's Attack! You gain {X} Weakness card(s), one for each Villain in the Line-Up.",
+
+        atrocitus_on_play_prompt: "Do you want to destroy up to {X} cards from your discard pile?",
+        atrocitus_choose_to_destroy: "Choose up to {X} cards to destroy from your discard pile:",
+        atrocitus_fa_no_cards: "Your hand is empty. Atrocitus's Attack has no effect.",
+        atrocitus_fa_card_taken: "Atrocitus's Attack! You were forced to place this card under your Super Hero. You will recover it once Atrocitus is defeated.",
     }
 };
 

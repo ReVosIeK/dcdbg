@@ -116,6 +116,7 @@
     "id": "lasso_of_truth",
     "name_en": "LASSO OF TRUTH",
     "name_pl": "LASSO PRAWDY",
+    "isDefense": true,
     "count": 3,
     "cost": 2,
     "vp": 1,
@@ -180,6 +181,7 @@
     "id": "the_cape_and_cowl",
     "name_en": "THE CAPE AND COWL",
     "name_pl": "PELERYNA SUPERBOHATERA",
+    "isDefense": true,
     "count": 3,
     "cost": 4,
     "vp": 1,
@@ -212,6 +214,7 @@
     "id": "blue_beetle",
     "name_en": "BLUE BEETLE",
     "name_pl": "BLUE BEETLE",
+    "isDefense": true,
     "count": 1,
     "cost": 6,
     "vp": 2,
@@ -564,6 +567,7 @@
     "id": "bulletproof",
     "name_en": "BULLETPROOF",
     "name_pl": "KULOODPORNOŚĆ",
+    "isDefense": true,
     "count": 3,
     "cost": 4,
     "vp": 1,
@@ -596,6 +600,7 @@
     "id": "super_speed",
     "name_en": "SUPER SPEED",
     "name_pl": "SUPERSZYBKOŚĆ",
+    "isDefense": true,
     "count": 4,
     "cost": 3,
     "vp": 1,
@@ -926,7 +931,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/atrocitus.png",
     "power": 2,
-    "effect_tags": ["on_play_effect:may_destroy_cards_from_discard_choice_count_le_2", "first_appearance_attack:each_player_moves_1_random_card_from_hand_to_under_superhero_return_on_defeat"]
+    "effect_tags": ["on_play_effect:may_destroy_cards_from_discard_choice_count_le_2", "first_appearance_attack:atrocitus_fa"]
   },
   {
     "id": "black_manta",
@@ -942,7 +947,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/black_manta.png",
     "power": 3,
-    "effect_tags": ["draw:1", "first_appearance_attack:each_player_discards_deck_top_1_then_if_cost_ge_1_player_chooses_destroy_discarded_or_discard_hand"]
+    "effect_tags": ["draw:1", "first_appearance_attack:black_manta_fa"]
   },
   {
     "id": "brainiac",
@@ -958,7 +963,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/brainiac.png",
     "power": 0,
-    "effect_tags": ["on_play_effect:each_opponent_reveals_random_card_from_hand_then_player_plays_revealed_non_locations_then_opponents_return_revealed_to_hand", "first_appearance_attack:each_player_chooses_2_from_hand_to_pool_shuffle_pool_deal_2_from_pool_to_each_player_hand"]
+    "effect_tags": ["on_play_effect:each_opponent_reveals_random_card_from_hand_then_player_plays_revealed_non_locations_then_opponents_return_revealed_to_hand", "first_appearance_attack:brainiac_fa"]
   },
   {
     "id": "captain_cold",
@@ -974,7 +979,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/captain_cold.png",
     "power": 2,
-    "effect_tags": ["on_play_effect:gain_1_power_per_opponent_with_hero_in_discard", "first_appearance_attack:each_player_flips_superhero_face_down_until_this_defeated"]
+    "effect_tags": ["on_play_effect:gain_1_power_per_opponent_with_hero_in_discard", "first_appearance_attack:captain_cold_fa"]
   },
   {
     "id": "darkseid",
@@ -990,7 +995,12 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/darkseid.png",
     "power": 0,
-    "effect_tags": ["conditional_effect:may_destroy_2_cards_from_hand_then_gain_power_5_else_gain_power_3", "first_appearance_attack:each_player_discards_2_cards_from_hand_unless_reveals_villain_or_supervillain_from_hand"]
+    "effect_tags": ["conditional_effect:may_destroy_2_cards_from_hand_then_gain_power_5_else_gain_power_3",
+        "first_appearance_attack:darkseid_fa"
+    ],
+    "attackDetails": {
+        "defenseCondition": "reveal_villain"
+    }
   },
   {
     "id": "deathstroke",
@@ -1006,7 +1016,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/deathstroke.png",
     "power": 0,
-    "effect_tags": ["conditional_effect:may_gain_card_from_lineup_choice_type_hero_or_villain_else_gain_power_3", "first_appearance_attack:each_player_reveals_hand_then_must_destroy_card_type_hero_or_superpower_or_equipment_from_hand_or_discard_choice"]
+    "effect_tags": ["conditional_effect:may_gain_card_from_lineup_choice_type_hero_or_villain_else_gain_power_3", "first_appearance_attack:deathstroke_fa"]
   },
   {
     "id": "lex_luthor",
@@ -1022,7 +1032,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/lex_luthor.png",
     "power": 0,
-    "effect_tags": ["draw:3", "first_appearance_attack:each_player_gains_weakness_count_equal_to_villains_in_lineup"]
+    "effect_tags": ["draw:3", "first_appearance_attack:lex_luthor_fa"]
   },
   {
     "id": "parallax",
@@ -1038,7 +1048,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/parallax.png",
     "power": 0,
-    "effect_tags": ["on_play_effect:double_total_power_this_turn", "first_appearance_attack:each_player_reveals_hand_then_discards_all_cards_from_hand_cost_le_2"]
+    "effect_tags": ["on_play_effect:double_total_power_this_turn", "first_appearance_attack:parallax_fa"]
   },
   {
     "id": "sinestro",
@@ -1054,7 +1064,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/sinestro.png",
     "power": 0,
-    "effect_tags": ["on_play_effect:reveal_main_deck_top_1_then_if_type_hero_gain_power_3_and_destroy_revealed_else_move_revealed_to_hand", "first_appearance_attack:each_player_reveals_hand_then_discards_cards_from_hand_count_equal_to_heroes_in_hand_choice"]
+    "effect_tags": ["on_play_effect:reveal_main_deck_top_1_then_if_type_hero_gain_power_3_and_destroy_revealed_else_move_revealed_to_hand", "first_appearance_attack:sinestro_fa"]
   },
   {
     "id": "the_anti-monitor",
@@ -1070,7 +1080,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/the_anti-monitor.png",
     "power": 2,
-    "effect_tags": ["on_play_effect:destroy_any_number_of_cards_from_lineup_choice_then_refill_lineup", "first_appearance_attack:each_player_reveals_hand_then_chooses_1_card_cost_ge_1_from_hand_and_adds_to_lineup"]
+    "effect_tags": ["on_play_effect:destroy_any_number_of_cards_from_lineup_choice_then_refill_lineup", "first_appearance_attack:anti_monitor_fa"]
   },
   {
     "id": "the_joker",
@@ -1086,7 +1096,7 @@
     "flavor_pl": "",
     "image_path": "assets/superVillain/the_joker.png",
     "power": 2,
-    "effect_tags": ["on_play_effect:each_opponent_chooses_discard_1_random_from_hand_or_active_player_draws_1", "first_appearance_attack:each_player_chooses_1_from_hand_puts_on_left_opponent_discard_then_if_received_card_cost_ge_1_gain_weakness_on_top_of_deck"]
+    "effect_tags": ["on_play_effect:each_opponent_chooses_discard_1_random_from_hand_or_active_player_draws_1", "first_appearance_attack:joker_fa"]
   },
   {
     "id": "the_flash",

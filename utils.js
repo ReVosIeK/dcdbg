@@ -1,5 +1,3 @@
-// utils.js
-
 /**
  * Tasuje tablicę w miejscu, używając algorytmu Fisher-Yates.
  * @param {Array} array Tablica do potasowania.
@@ -19,16 +17,21 @@
 * @param {object} player Obiekt gracza.
 * @param {number} count Liczba kart do dobrania.
 */
-function drawCards(player, count, options = {}) {
+
+
+// w pliku utils.js
+
+function drawCards(player, count, gameState, options = {}) {
     let extraCards = 0;
-    // Zdolność Flasha: pierwszy efekt dobrania kart w turze daje +1 kartę
-    if (options.source === 'card_effect' && !player.turnFlags.flashAbilityUsed && player.superheroes.some(h => h.id === 'the_flash')) {
+
+    if (options.source === 'card_effect' && !player.turnFlags.flashAbilityUsed && player.superheroes.some(h => h.id === 'the_flash') && !gameState.superheroAbilitiesDisabled) {
         console.log("Flash's ability triggered: drawing 1 extra card.");
         extraCards = 1;
-        player.turnFlags.flashAbilityUsed = true; // Użyj flagi, aby nie uruchomić ponownie w tej turze
+        player.turnFlags.flashAbilityUsed = true;
     }
-    
-    for (let i = 0; i < count + extraCards; i++) {
+
+    const totalToDraw = count + extraCards;
+    for (let i = 0; i < totalToDraw; i++) {
         if (player.deck.length === 0) {
             if (player.discard.length === 0) {
                 console.log("Player cannot draw, both deck and discard pile are empty.");
@@ -38,6 +41,8 @@ function drawCards(player, count, options = {}) {
             player.deck = shuffle([...player.discard]);
             player.discard = [];
         }
-        player.hand.push(player.deck.pop());
+        if (player.deck.length > 0) {
+            player.hand.push(player.deck.pop());
+        }
     }
 }
