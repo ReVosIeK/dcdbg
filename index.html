@@ -14,9 +14,22 @@
     </div>
     <div id="pre-game-modal" class="screen">
         <h2 class="menu-title" data-i18n-key="how_to_play">Jak chcesz grać?</h2>
-        <button id="play-one-superhero-btn" class="btn" data-i18n-key="one_superhero">Jeden Superbohater (Standardowo)</button>
-        <button id="play-two-superheroes-btn" class="btn" data-i18n-key="two_superheroes">Dwóch Superbohaterów (Wariant)</button>
-        <button id="back-to-main-menu-from-pre-game" class="btn btn-secondary" data-i18n-key="back_to_menu">Powrót</button>
+
+        <div id="pre-game-step-1" class="button-group">
+            <button id="play-one-superhero-btn" class="btn" data-i18n-key="one_superhero">Jeden Superbohater</button>
+            <button id="play-two-superheroes-btn" class="btn" data-i18n-key="two_superheroes">Dwóch Superbohaterów</button>
+        </div>
+
+        <div id="pre-game-step-2" class="hidden">
+            <h3 class="menu-subtitle" data-i18n-key="choose_difficulty_level">Wybierz Poziom Trudności</h3>
+            <div class="button-group">
+                <button id="difficulty-easy-btn" class="btn" data-i18n-key="difficulty_easy" data-difficulty="easy">Łatwy</button>
+                <button id="difficulty-medium-btn" class="btn" data-i18n-key="difficulty_medium" data-difficulty="medium">Średni</button>
+                <button id="difficulty-hard-btn" class="btn" data-i18n-key="difficulty_hard" data-difficulty="hard">Trudny</button>
+            </div>
+        </div>
+
+        <button id="back-to-main-menu-from-pre-game" class="btn btn-secondary" style="margin-top: 25px;">Powrót</button>
     </div>
     <div id="main-menu-screen" class="screen">
         <h2 class="menu-title" data-i18n-key="main_menu">Menu Główne</h2>
@@ -39,6 +52,14 @@
 
     <div id="game-container" class="screen">
         <div id="game-board">
+            <div id="ai-player-area" class="game-zone">
+                <div id="ai-info-container">
+                    <p id="ai-power-display">AI Power: <span id="ai-power-value">0</span></p>
+                </div>
+                <div id="ai-deck-container" class="deck-stack"></div>
+                <div id="ai-discard-container" class="deck-stack"></div>
+                <div id="ai-superhero-container"></div>
+            </div>
             <div id="specials-container" class="nested-grid-container">
                 <div id="main-deck-container" class="game-zone deck-stack" data-i18n-zone-key="main_deck_zone"></div>
                 <div id="destroyed-pile-container" class="game-zone deck-stack" data-i18n-zone-key="destroyed_pile_zone"></div>
@@ -182,7 +203,8 @@
     <div id="card-tooltip" class="hidden"></div>
 
     <script src="i18n.js" defer></script>
-    <script src="utils.js" defer></script>
+    <script src="utils.js" type="module" defer></script>
+    <script src="aiPlayer.js" type="module" defer></script>
     <script src="effects.js" defer></script>  
     <script src="card_effects/draw.js" defer></script>
     <script src="card_effects/conditional_power.js" defer></script>

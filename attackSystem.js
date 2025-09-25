@@ -1,4 +1,5 @@
 // attackSystem.js (Finalna, poprawiona wersja)
+import { shuffle } from './utils.js';
 
 export const AttackManager = {
     async handleAttack(attackDetails, gameState, engine) {

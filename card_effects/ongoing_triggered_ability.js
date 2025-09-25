@@ -9,7 +9,7 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
             const playsOfThisType = player.playedCardTypeCounts.get(playedCard.type) || 0;
             if (playedCard.type === 'Equipment' && playsOfThisType === 1) { 
                 console.log("The Batcave triggered: drawing 1 card.");
-                drawCards(player, 1, gameState, { source: 'ability' });
+                engine.drawCards(player, 1, gameState, { source: 'ability' })
             }
             break;
         }
@@ -22,7 +22,7 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
 
                 if (totalVillainsPlayed === 1) {
                     console.log("Arkham Asylum triggered: drawing 1 card.");
-                    drawCards(player, 1, gameState, { source: 'ability' });
+                    engine.drawCards(player, 1, gameState, { source: 'ability' })
                 }
             }
             break;
@@ -31,7 +31,7 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
             const playsOfThisType = player.playedCardTypeCounts.get(playedCard.type) || 0;
             if (playedCard.type === 'Super Power' && playsOfThisType === 1) {
                 console.log("Fortress of Solitude triggered: drawing 1 card.");
-                drawCards(player, 1, gameState, { source: 'ability' });
+                engine.drawCards(player, 1, gameState, { source: 'ability' })
             }
             break;
         }
@@ -39,7 +39,7 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
             const playsOfThisType = player.playedCardTypeCounts.get(playedCard.type) || 0;
             if (playedCard.type === 'Hero' && playsOfThisType === 1) {
                 console.log("The Watchtower triggered: drawing 1 card.");
-                drawCards(player, 1, gameState, { source: 'ability' });
+                engine.drawCards(player, 1, gameState, { source: 'ability' })
             }
             break;
         }
@@ -47,7 +47,7 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
             const totalPlays = player.playedCards.length;
             if ((playedCard.cost === 2 || playedCard.cost === 3) && totalPlays === 1) {
                  console.log("Titans Tower triggered: drawing 1 card.");
-                 drawCards(player, 1, gameState, { source: 'ability' });
+                 engine.drawCards(player, 1, gameState, { source: 'ability' })
             }
             break;
         }

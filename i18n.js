@@ -17,6 +17,10 @@ const translations = {
         one_superhero: "Jeden Superbohater (Standardowo)",
         two_superheroes: "Dwóch Superbohaterów (Wariant)",
         choose_two_superheroes: "Wybierz dwóch Superbohaterów:",
+        choose_difficulty_level: "Wybierz Poziom Trudności",
+        difficulty_easy: "Łatwy",
+        difficulty_medium: "Średni",
+        difficulty_hard: "Trudny",
 
         // === PLANSZA GRY I STREFY ===
         power_display: "Moc:",
@@ -64,6 +68,9 @@ const translations = {
         debug_sv_pos_second: "Druga od góry",
         debug_choose_card_of_type: "Wybierz kartę typu {TYPE}:",
         debug_end_game_alert: "KONIEC GRY (debug)!\n\nTwój ostateczny wynik: {SCORE} PZ.",
+        game_over_alert: "KONIEC GRY!\n\nOstateczny wynik:\nTy: {PLAYER_SCORE} PZ\nAI: {AI_SCORE} PZ",
+        game_over_reason_sv: "Pokonano ostatniego Super-złoczyńcę.",
+        game_over_reason_deck: "Talia główna została wyczerpana.",
 
         // === MODALE / POTWIERDZENIA ===
         value_label: "Wartość:",
@@ -104,7 +111,8 @@ const translations = {
         add_to_hand_prompt: "Dodaj do ręki:",
         add_to_lineup_prompt: "Dodaj do Line-Up:",
         destroy_card_prompt: "Wybierz typ karty do zniszczenia:",
-        bought_card_placeholder: "[ Karta Kupiona ]",
+        bought_card_placeholder: "[ Kupiona ]",
+        empty_pile_placeholder: "[ Pusty Stos ]",
         choose_defense_card_prompt: "Nadchodzi atak! Wybierz kartę Obrony z ręki (lub Anuluj, aby przyjąć atak):",
         attack_defended_notification: "Atak został zablokowany dzięki karcie {CARD_NAME}!",
         attack_hit_gain_weakness: "Atak trafia! Otrzymujesz kartę Słabości na stos kart odrzuconych.",
@@ -220,6 +228,10 @@ const translations = {
         one_superhero: "One Superhero (Standard)",
         two_superheroes: "Two Superheroes (Variant)",
         choose_two_superheroes: "Choose two Superheroes:",
+        choose_difficulty_level: "Choose Difficulty Level",
+        difficulty_easy: "Easy",
+        difficulty_medium: "Medium",
+        difficulty_hard: "Hard",
 
         // === GAMEPLAY UI ===
         power_display: "Power:",
@@ -266,6 +278,9 @@ const translations = {
         debug_sv_pos_second: "Second from top",
         debug_choose_card_of_type: "Choose a card of type {TYPE}:",
         debug_end_game_alert: "GAME OVER (debug)!\n\nYour final score: {SCORE} VP.",
+        game_over_alert: "GAME OVER!\n\nFinal Score:\nYou: {PLAYER_SCORE} VP\nAI: {AI_SCORE} VP",
+        game_over_reason_sv: "The last Super-Villain has been defeated.",
+        game_over_reason_deck: "The Main Deck has been depleted.",
 
         // === GENERIC DIALOGS & BUTTONS ===
         value_label: "Value:",
@@ -310,7 +325,8 @@ const translations = {
         add_to_hand_prompt: "Add to hand:",
         add_to_lineup_prompt: "Add to Line-Up:",
         destroy_card_prompt: "Choose card type to destroy:",
-        bought_card_placeholder: "[ Card Bought ]",
+        bought_card_placeholder: "[ Bought ]",
+        empty_pile_placeholder: "[ Empty Pile ]",
         choose_defense_card_prompt: "Incoming attack! Choose a Defense card from your hand to use (or Cancel to take the hit):",
         attack_defended_notification: "Attack defended with {CARD_NAME}!",
         attack_hit_gain_weakness: "The attack hits! You gain a Weakness card to your discard pile.",

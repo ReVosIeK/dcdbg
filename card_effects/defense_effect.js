@@ -12,7 +12,7 @@ cardEffects.defense_effect = async (gameState, player, effectTag, engine, detail
             if (cardIndex !== -1) {
                 const [discardedCard] = player.hand.splice(cardIndex, 1);
                 player.discard.push(discardedCard);
-                drawCards(player, 1, gameState, { source: 'ability' });
+                engine.drawCards(player, 1, gameState, { source: 'ability' });
             }
             break;
         }
@@ -22,7 +22,7 @@ cardEffects.defense_effect = async (gameState, player, effectTag, engine, detail
             if (cardIndex !== -1) {
                 const [discardedCard] = player.hand.splice(cardIndex, 1);
                 player.discard.push(discardedCard);
-                drawCards(player, 2, gameState, { source: 'ability' });
+                engine.drawCards(player, 2, gameState, { source: 'ability' });
             }
             break;
         }
@@ -32,7 +32,7 @@ cardEffects.defense_effect = async (gameState, player, effectTag, engine, detail
             if (cardIndex !== -1) {
                 const [discardedCard] = player.hand.splice(cardIndex, 1);
                 player.discard.push(discardedCard);
-                drawCards(player, 1, gameState, { source: 'ability' });
+                engine.drawCards(player, 1, gameState, { source: 'ability' });
             }
 
             if (player.discard.length > 0) {

@@ -85,6 +85,13 @@ body {
   padding-bottom: 10px;
 }
 
+.menu-subtitle {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
 /* --- PRZYCISKI I ELEMENTY FORMULARZA --- */
 .btn {
   background-color: transparent;
@@ -140,14 +147,16 @@ input[type='range'] {
   padding: 10px;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-  grid-template-rows: auto auto 1fr auto 35px;
-  gap: 30px 10px;
+  grid-template-rows: auto auto auto 1fr auto 35px;
+  gap: 15px 10px;
   grid-template-areas:
-    'specials  line-up      line-up      line-up      line-up        stacks'
-    'specials  play-area    play-area    play-area    play-area      stacks'
-    'specials   .            .            .            .              stacks'
+    'ai-area    ai-area      ai-area      ai-area      ai-area      ai-area'
+    'specials   line-up      line-up      line-up      line-up      stacks'
+    'specials   play-area    play-area    play-area    play-area    stacks'
     'specials   player-hand  player-hand  player-hand  player-superhero player-superhero'
-    '.         menu-bar     menu-bar     menu-bar     menu-bar       .';
+    '.          menu-bar     menu-bar     menu-bar     menu-bar     .';
+
+    align-content: start;
 }
 
 /* --- PRZYPISANIE OBSZARÓW I WYRÓWNANIE --- */
@@ -155,10 +164,13 @@ input[type='range'] {
   grid-area: line-up;
   overflow: visible;
   justify-self: center;
+  align-self: start;
 }
 
 #stacks-container {
   grid-area: stacks;
+  margin-right: -160px;
+  align-self: start
 }
 
 #specials-container {
@@ -168,25 +180,27 @@ input[type='range'] {
 
 #play-area-container {
   grid-area: play-area;
-  padding-top: 25px;
   overflow: visible;
   justify-self: center;
-  min-height: 200px;
+  align-self: start;
   max-width: 585px;
 }
 
 #player-superhero-container {
   grid-area: player-superhero;
-  flex-direction: column;
-  justify-content: flex-start;
+  flex-direction: row; /* ZMIANA: Układ poziomy */
+  justify-content: center; /* Wyśrodkowanie w poziomie */
+  align-items: center; /* Wyśrodkowanie w pionie */
   justify-self: start;
   gap: 20px;
 }
 
 #player-hand-container {
   grid-area: player-hand;
+  align-self: center;
   overflow: visible;
-  max-width: 900px;
+  max-height: 210px;
+  min-height: 210px;
 }
 
 #hand-cards-wrapper,
@@ -233,7 +247,6 @@ input[type='range'] {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  width: 100%;
 }
 
 #power-display {
@@ -248,6 +261,8 @@ input[type='range'] {
   max-width: 180px;
 }
 
+
+
 /* --- STYLE DLA KONTENERÓW Z ZAGNIEŻDŻONĄ SIATKĄ --- */
 .nested-grid-container {
   display: grid;
@@ -256,9 +271,41 @@ input[type='range'] {
   align-content: start;
 }
 
+/* --- UKŁAD LEWEJ KOLUMNY (SPECJALNE STOSY) --- */
+
+/* Krok 1: Definiujemy siatkę 2x4 dla głównego kontenera */
 #specials-container {
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(5, auto);
+    display: grid;
+    grid-template-columns: 120px 120px;
+    grid-template-rows: repeat(4, auto);
+    gap: 10px;
+    justify-items: center;
+}
+
+/* Krok 2: Ustawiamy pozycję dla KAŻDEGO elementu z osobna */
+#main-deck-container {
+    grid-row: 1;
+    grid-column: 1 / 3; /* Zajmij obie kolumny w pierwszym wierszu */
+}
+
+#destroyed-pile-container {
+    grid-row: 2;
+    grid-column: 1;    /* Zajmij pierwszą kolumnę w drugim wierszu */
+}
+
+#discard-pile-container {
+    grid-row: 2;
+    grid-column: 2;    /* Zajmij drugą kolumnę w drugim wierszu */
+}
+
+#locations-container {
+    grid-row: 3;
+    grid-column: 1 / 3; /* Zajmij obie kolumny w trzecim wierszu */
+}
+
+#player-deck-container {
+    grid-row: 4;
+    grid-column: 1 / 3; /* Zajmij obie kolumny w czwartym wierszu */
 }
 
 #stacks-container {
@@ -301,8 +348,8 @@ input[type='range'] {
 }
 
 .card {
-  width: 130px;
-  height: 182px;
+  width: 120px;
+  height: 172px;
   background-color: var(--color-surface);
   border: 2px solid var(--color-border);
   border-radius: 6px;
@@ -340,8 +387,8 @@ input[type='range'] {
 
 .card-placeholder-dashed,
 .lineup-placeholder {
-  width: 130px;
-  height: 182px;
+  width: 120px;
+  height: 172px;
   border: 2px dashed var(--color-border);
   border-radius: 6px;
   opacity: 0.6;
@@ -816,7 +863,8 @@ input[type='range'] {
     background-color: var(--color-surface);
     padding: 25px;
     border-radius: 12px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 0 50px rgba(0, 121, 182, 0.4);
     max-width: 800px; /* Maksymalna szerokość całego modala */
 }
 
@@ -847,4 +895,68 @@ input[type='range'] {
     font-size: 1rem;
     line-height: 1.6;
     white-space: pre-wrap;
+}
+
+
+
+
+
+
+
+
+
+
+
+#ai-player-area {
+    grid-area: ai-area;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 20px;
+    min-height: 170px;
+}
+
+#ai-info-container {
+    text-align: center;
+    min-width: 110px;
+}
+
+#ai-power-display {
+    color: #ff5555;
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+/* Krok 1: Kontenery dostosowują rozmiar. Superbohater ma inny rozmiar, bo nie jest obrócony. */
+#ai-deck-container,
+#ai-discard-container {
+    width: 140px;  /* Szerokość dla obróconych kart */
+    height: 100px; /* Wysokość dla obróconych kart */
+    flex-shrink: 0;
+}
+
+#ai-superhero-container { /* Specyficzne style dla kontenera Superbohatera */
+    width: 100px;  /* Oryginalna szerokość karty */
+    height: 140px; /* Oryginalna wysokość karty */
+    flex-shrink: 0;
+}
+
+/* Krok 2: Obracamy tylko talie i stos kart odrzuconych */
+#ai-deck-container .card,
+#ai-deck-container .card-placeholder-dashed,
+#ai-discard-container .card,
+#ai-discard-container .card-placeholder-dashed {
+    transform: rotate(-90deg);
+    width: 100px;
+    height: 140px;
+    margin: -20px 20px;
+}
+
+/* Upewniamy się, że karta Superbohatera jest w pionie i dobrze wygląda */
+#ai-superhero-container .card {
+    transform: none; /* Upewniamy się, że nie jest obrócony */
+    width: 100px;
+    height: 140px;
+    margin: 0; /* Usuwamy marginesy, bo karta nie jest obrócona */
 }

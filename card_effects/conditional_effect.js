@@ -7,7 +7,7 @@ cardEffects.conditional_effect = async (gameState, player, effectTag, engine) =>
         if (isFirstCard) {
             player.discard.push(...player.hand);
             player.hand = [];
-            drawCards(player, 5);
+            engine.drawCards(player, 5, gameState, { source: 'card_effect' });
         } else {
             gameState.currentPower += 1;
         }

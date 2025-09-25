@@ -3,7 +3,7 @@
  * @param {Array} array Tablica do potasowania.
  * @returns {Array} Potasowana tablica.
  */
- function shuffle(array) {
+ export function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
@@ -21,8 +21,14 @@
 
 // w pliku utils.js
 
-function drawCards(player, count, gameState, options = {}) {
+export function drawCards(player, count, gameState, options = {}) {
     let extraCards = 0;
+
+    if (player.name !== "AI Player" && options.source === 'card_effect' && !player.turnFlags.flashAbilityUsed && player.superheroes.some(h => h.id === 'the_flash') && !gameState.superheroAbilitiesDisabled) {
+        console.log("Flash's ability triggered: drawing 1 extra card.");
+        extraCards = 1;
+        player.turnFlags.flashAbilityUsed = true;
+    }
 
     if (options.source === 'card_effect' && !player.turnFlags.flashAbilityUsed && player.superheroes.some(h => h.id === 'the_flash') && !gameState.superheroAbilitiesDisabled) {
         console.log("Flash's ability triggered: drawing 1 extra card.");
