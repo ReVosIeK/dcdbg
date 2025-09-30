@@ -111,6 +111,15 @@ body {
   box-shadow: 0 0 15px var(--color-glow), inset 0 0 10px rgba(0, 170, 255, 0.5);
 }
 
+.btn:disabled,
+.btn:disabled:hover {
+    background-color: transparent;
+    border-color: var(--color-border);
+    color: var(--color-border);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 .button-group {
     display: flex;
     gap: 20px;
