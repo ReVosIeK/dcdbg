@@ -12,12 +12,18 @@ export function initializeAI(allCards) {
     // Resetuj obiekt AI
     aiPlayer = {
         name: "AI Player",
+        isAI: true,
         superheroes: [],
         deck: [],
         hand: [],
         discard: [],
         playedCards: [],
-        ongoing: []
+        ongoing: [],
+        playedCardTypeCounts: new Map(),
+        gainedCardsThisTurn: [],
+        turnTriggers: [],
+        borrowedCards: [],
+        turnFlags: {}
     };
 
     // Stwórz startową talię AI (7 Ciosów, 3 Bezsilności)
@@ -41,8 +47,8 @@ export function initializeAI(allCards) {
  * Główna funkcja wykonująca całą turę AI.
  * @param {object} gameState - Główny obiekt stanu gry.
  */
-export async function executeAITurn(gameState) {
-    console.log("%c--- Start AI's Turn ---", "color: red; font-weight: bold;");
+export async function executeAITurn(gameState, logEvent, t, gainCard) {
+    logEvent(`${t('log_turn_starts')} AI`, 'system');
     
     const playArea = document.getElementById('play-area-wrapper');
     const aiPowerDisplay = document.getElementById('ai-power-value');
@@ -59,12 +65,12 @@ export async function executeAITurn(gameState) {
         aiPowerDisplay.textContent = aiPower; // Aktualizuj moc AI na żywo
         await new Promise(resolve => setTimeout(resolve, 250)); // Pauza, aby gracz zobaczył co się dzieje
     }
-    console.log(`AI generated ${aiPower} Power.`);
+    logEvent(`${t('log_ai_generated_power')} ${aiPower} Power`, 'ai');
 
     await new Promise(resolve => setTimeout(resolve, 1000)); // Dłuższa pauza przed zakupami
 
     // Faza 2: Zakupy
-    await purchasePhase_Medium(aiPower, gameState);
+    await purchasePhase_Medium(aiPower, gameState, logEvent, t, gainCard);
 
     // Faza 3: Sprzątanie i dobranie nowej ręki
     cleanupPhase_AI(gameState);
@@ -73,7 +79,7 @@ export async function executeAITurn(gameState) {
     playArea.innerHTML = '';
     aiPowerDisplay.textContent = '0';
     
-    console.log("%c--- End AI's Turn ---", "color: red; font-weight: bold;");
+    console.log("%c--- Koniec tury AI ---", "color: red; font-weight: bold;");
 }
 
 // --- LOGIKA FAZ DLA POZIOMU ŚREDNIEGO ---
@@ -89,13 +95,14 @@ function playCardsPhase_Medium(gameState) {
     return totalPower;
 }
 
-async function purchasePhase_Medium(aiPower, gameState) {
+async function purchasePhase_Medium(aiPower, gameState, logEvent, t, gainCard) {
     // Priorytet #1: Super-złoczyńca
     if (gameState.superVillainStack.length > 0) {
         const sv = gameState.superVillainStack[0];
         if (aiPower >= sv.cost) {
             console.log(`AI is defeating Super-Villain: ${sv.name_en}`);
             const defeatedSV = gameState.superVillainStack.shift();
+            await gainCard(aiPlayer, defeatedSV, { silent: true });
             aiPlayer.discard.push(defeatedSV);
             aiPower -= sv.cost;
             return;
@@ -120,9 +127,11 @@ async function purchasePhase_Medium(aiPower, gameState) {
             // --- POPRAWKA: Inteligentna obsługa placeholderów dla AI ---
             if (cardIndex < STANDARD_LINEUP_SIZE) {
                 const [boughtCard] = gameState.lineUp.splice(cardIndex, 1, null);
+                await gainCard(aiPlayer, boughtCard);
                 aiPlayer.discard.push(boughtCard);
             } else {
                 const [boughtCard] = gameState.lineUp.splice(cardIndex, 1);
+                await gainCard(aiPlayer, boughtCard);
                 aiPlayer.discard.push(boughtCard);
             }
         }
@@ -134,12 +143,13 @@ async function purchasePhase_Medium(aiPower, gameState) {
         const kick = gameState.kickStack[0];
         console.log(`AI is buying: ${kick.name_en}`);
         const boughtKick = gameState.kickStack.shift();
+        await gainCard(aiPlayer, boughtKick);
         aiPlayer.discard.push(boughtKick);
         aiPower -= kick.cost;
     }
 }
 
-function cleanupPhase_AI(gameState) {
+function cleanupPhase_AI(gameState, logEvent, t) {
     // Przenieś zagrane karty i resztę ręki na stos kart odrzuconych
     aiPlayer.discard.push(...aiPlayer.playedCards);
     aiPlayer.discard.push(...aiPlayer.hand);

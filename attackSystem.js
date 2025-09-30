@@ -13,7 +13,7 @@ export const AttackManager = {
             if (chosenDefense) {
                 if (defenseInfo.type === 'standard') {
                     const chosenDefenseCard = chosenDefense.card;
-                    console.log(`[AttackManager] Player defended with ${chosenDefenseCard.name_en}`);
+                    logEvent(`${t('log_player_defended')} ${cardName}`, 'player');zzzzz
                     const langKey = `name_${currentLang}`;
                     const cardName = chosenDefenseCard[langKey] || chosenDefenseCard.name_en;
                     await engine.showNotification(t('attack_defended_notification').replace('{CARD_NAME}', cardName));
@@ -29,7 +29,7 @@ export const AttackManager = {
             }
         }
         
-        console.log('[AttackManager] Player did not defend. Applying attack effect.');
+        logEvent(t('log_attack_unblocked'), 'attack');
         await this.applyAttackEffect(attackingCard, target, gameState, engine);
     },
 
@@ -155,10 +155,8 @@ export const AttackManager = {
                     }
                 }
                 break;
-    //next  case        
             
             // === ATAKI Z PIERWSZEGO POJAWIENIA ===
-
             case 'darkseid_fa': { // Darkseid
                 if (target.hand.length <= 2) {
                     await engine.showNotification(t('darkseid_discard_all'));
@@ -404,7 +402,6 @@ export const AttackManager = {
                 }
                 break;
             }
-    //next  case
             
             default:
                 // Sprawdź, czy logika istnieje jeszcze w starym systemie

@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showPolishTooltips: false
     };
     let temporaryCardContext = [];
+    let gameLog = [];
 
     function t(key) {
         return translations[currentLang][key] || key;
@@ -217,7 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
             function onMouseMove(e) { if (!isDragging) return; debug.panel.style.left = `${e.clientX - offsetX}px`; debug.panel.style.top = `${e.clientY - offsetY}px`; }
             function onMouseUp() { isDragging = false; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
         }
-        
+
+        const logToggleButton = document.getElementById('log-toggle-button');
+        const logPanel = document.getElementById('game-log-panel');
+        const logCloseButton = document.getElementById('log-close-button');
+        const logHeader = document.getElementById('game-log-header');
+
+        if (logToggleButton) logToggleButton.addEventListener('click', () => logPanel.classList.toggle('hidden'));
+        if (logCloseButton) logCloseButton.addEventListener('click', () => logPanel.classList.add('hidden'));
+
         const makeWrapperDraggable = (wrapperElement) => {
             if(!wrapperElement) return;
             let isDown = false, startX, scrollLeft;
@@ -802,6 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function resetGameState() {
+        gameLog = [];
         gameState.currentPower = 0;
         gameState.superVillainCostModifier = 0;
         gameState.mainDeck = [];
@@ -902,6 +912,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gainCard,
         applyCardEffect,
         renderGameBoard,
+        logEvent,
+        t,
         isSuperPowerType
         };
 
@@ -1046,10 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await gainCard(gameState.player, defeatedVillain);
             
             const langKey = `name_${currentLang}`;
-            console.log(
-                `%cPlayer DEFEATS: ${defeatedVillain[langKey] || defeatedVillain.name_en}!`,
-                'color: #ffd700; font-size: 1.2em; font-weight: bold; background-color: #333; padding: 2px 5px; border-radius: 3px;'
-            );
+            logEvent(`${t('log_player_defeats')} ${defeatedVillain[langKey] || defeatedVillain.name_en}!`, 'victory');
 
             await gainCard(gameState.player, defeatedVillain, { silent: true });
             
@@ -1066,36 +1075,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function gainCard(player, cardToGain, options = {}) {
+        const langKey = `name_${currentLang}`;
+
         if (!options.silent) {
-            const langKey = `name_${currentLang}`;
-            console.log(`Player is gaining ${cardToGain[langKey] || cardToGain.name_en}`);
+            const logMessage = player.isAI 
+                ? `${t('log_ai_buys')} ${cardToGain[langKey] || cardToGain.name_en}`
+                : `${t('log_player_buys')} ${cardToGain[langKey] || cardToGain.name_en}`;
+            const logType = player.isAI ? 'ai' : 'player';
+            logEvent(logMessage, logType);
         }
 
         let destination = player.discard;
+        let abilityUsed = false;
 
-        // Sprawdź efekty, które zawsze mogą się aktywować (nie są jednorazowe na turę)
-        let alwaysAsk = false;
-        if (cardToGain.id === 'solomon_grundy' || 
-        (!gameState.superheroAbilitiesDisabled && player.superheroes.some(h => h.id === 'aquaman') && cardToGain.cost <= 5)) {
-            alwaysAsk = true;
-        }
-
-        if (alwaysAsk) {
-            const userConfirmed = await promptConfirmation(t('confirm_place_on_top_deck').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
-            if (userConfirmed) {
+        // 1. Zdolność Aquamana
+        if (!abilityUsed && !gameState.superheroAbilitiesDisabled && player.superheroes.some(h => h.id === 'aquaman') && cardToGain.cost <= 5) {
+            if (player.isAI) {
                 destination = player.deck;
+                const message = t('log_ai_ability_usage').replace('{ABILITY_SOURCE}', 'Aquaman').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en);
+                logEvent(message, 'ai');
+            } else {
+                const userConfirmed = await promptConfirmation(t('confirm_place_on_top_deck').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
+                if (userConfirmed) destination = player.deck;
             }
+            abilityUsed = true;
+        }
+        
+        // 2. Efekt karty Solomon Grundy
+        if (!abilityUsed && cardToGain.id === 'solomon_grundy') {
+            if (player.isAI) {
+                destination = player.deck;
+                logEvent(t('log_ai_solomon_grundy'), 'ai');
+            } else {
+                const userConfirmed = await promptConfirmation(t('confirm_place_on_top_deck').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
+                if (userConfirmed) destination = player.deck;
+            }
+            abilityUsed = true;
         }
 
-        // OSOBNO sprawdź efekt Trójzębu, bo jest jednorazowy na turę
+        // 3. Efekt Trójzębu Aquamana (jednorazowy na turę)
+        // --- POPRAWKA: Deklaracja jest tylko tutaj, jeden raz w całej funkcji ---
         const allPlayedCards = [...player.playedCards, ...player.ongoing];
-        if (allPlayedCards.some(c => c.id === 'aquamans_trident') && !player.turnFlags.aquamanTridentUsed) {
-            const useTrident = await promptConfirmation(t('aquaman_trident_prompt_each_time').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
-            if (useTrident) {
+        if (!abilityUsed && allPlayedCards.some(c => c.id === 'aquamans_trident') && !player.turnFlags.aquamanTridentUsed) {
+            if (player.isAI) {
                 destination = player.deck;
-                player.turnFlags.aquamanTridentUsed = true; // "Zużyj" zdolność na tę turę
-                console.log("Aquaman's Trident ability has been used for this turn.");
+                player.turnFlags.aquamanTridentUsed = true;
+                const message = t('log_ai_trident').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en);
+                logEvent(message, 'ai');
+            } else {
+                const useTrident = await promptConfirmation(t('aquaman_trident_prompt_each_time').replace('{CARD_NAME}', cardToGain[langKey] || cardToGain.name_en));
+                if (useTrident) {
+                    destination = player.deck;
+                    player.turnFlags.aquamanTridentUsed = true;
+                }
             }
+            abilityUsed = true;
         }
 
         player.gainedCardsThisTurn.push(cardToGain);
@@ -1127,6 +1161,8 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCards,
         applyCardEffect,
         renderGameBoard,
+        logEvent,
+        t,
         isSuperPowerType
         };
         
@@ -1231,7 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkEndGameConditions()) return; // Sprawdź koniec gry
         
         // TURA AI
-        await executeAITurn(gameState);
+        await executeAITurn(gameState, logEvent, t, gainCard);
 
         // Sprzątanie i uzupełnianie po turze AI
         gameState.lineUp = gameState.lineUp.filter(card => card !== null);
@@ -1241,7 +1277,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkEndGameConditions()) return; // Sprawdź koniec gry ponownie
 
         // POCZĄTEK NOWEJ TURY GRACZA
-        console.log("--- Player's turn begins ---");
+        logEvent(`${t('log_turn_starts')} ${t('player_label')}`, 'system');
         gameState.currentPower = 0;
         updateHUD();
     }
@@ -1314,6 +1350,8 @@ document.addEventListener('DOMContentLoaded', () => {
             gainCard,
             applyCardEffect,
             renderGameBoard,
+            logEvent,
+            t,
             isSuperPowerType
         };
 
@@ -1582,7 +1620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameState.player) return;
         gameBoardElements.powerValue.textContent = gameState.currentPower;
     }
-    
+
     function updateBuyableStatus() {
         if (!gameState.player) return;
         const lineUpElements = Array.from(gameBoardElements.lineUp.children);
@@ -1614,6 +1652,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 svCardEl.classList.remove('disabled');
             }
         }
+    }
+
+    function logEvent(message, type = 'system') {
+        // Dodajemy wpis do naszej tablicy logów
+        gameLog.push({ message, type });
+        // Ograniczamy długość logu do 100 ostatnich wpisów, aby nie spowalniać gry
+        if (gameLog.length > 100) {
+            gameLog.shift();
+        }
+        // Logujemy też do konsoli deweloperskiej
+        console.log(message);
+        // Odświeżamy widok panelu
+        renderGameLog();
+    }
+
+    function renderGameLog() {
+        const logContainer = document.getElementById('game-log-messages');
+        if (!logContainer) return;
+
+        logContainer.innerHTML = ''; // Czyścimy stary widok
+        gameLog.forEach(entry => {
+            const entryEl = document.createElement('p');
+            entryEl.className = `log-entry log-${entry.type}`;
+            entryEl.textContent = entry.message;
+            logContainer.appendChild(entryEl);
+        });
+
+        // Automatycznie przewijaj na dół
+        logContainer.scrollTop = logContainer.scrollHeight;
     }
 
     init();

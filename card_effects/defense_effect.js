@@ -50,8 +50,7 @@ cardEffects.defense_effect = async (gameState, player, effectTag, engine, detail
         }
 
         case 'on_reveal_from_hand_keep_this_avoid_attack': { // Blue Beetle
-            // Karta zostaje w ręku, więc nie robimy nic.
-            console.log("Blue Beetle defended. Card remains in hand.");
+            logEvent(t('log_blue_beetle_defense'), 'player');
             break;
         }
 

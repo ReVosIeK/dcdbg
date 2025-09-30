@@ -50,7 +50,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         if (cardsToMove.length > 0) {
             player.discard = newDiscard;
             player.hand.push(...cardsToMove);
-            console.log(`Man of Steel moved ${cardsToMove.length} Super Power(s) to hand.`);
+            const message = engine.t('log_man_of_steel_effect').replace('{COUNT}', cardsToMove.length);
+            engine.logEvent(message, 'player');
         }
     } else if (effectTag === 'may_move_cards_from_discard_to_bottom_of_deck_choice_count_2') {
         if (player.discard.length === 0) return;
@@ -70,7 +71,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
             });
             player.discard = player.discard.filter(card => !chosenCardIds.includes(card.instanceId));
             player.deck.splice(0, 0, ...cardsToMove);
-            console.log(`Zatanna moved ${cardsToMove.length} card(s) to the bottom of the deck.`);
+            const message = engine.t('log_zatanna_effect').replace('{COUNT}', cardsToMove.length);
+            engine.logEvent(message, 'player');
         }
     } else if (effectTag === 'gain_all_type_villain_from_lineup_cost_le_7') {
         const cardsToGain = [];
@@ -143,7 +145,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
             gameState.destroyedPile.push(...cardsToDestroy);
             player.hand = player.hand.filter(card => !chosenCardIds.includes(card.instanceId));
             player.discard = player.discard.filter(card => !chosenCardIds.includes(card.instanceId));
-            console.log(`Destroyed ${cardsToDestroy.length} card(s).`);
+            const message = engine.t('log_cards_destroyed').replace('{COUNT}', cardsToDestroy.length);
+            engine.logEvent(message, 'system');
             engine.renderGameBoard();
         }
     } else if (effectTag === 'may_destroy_cards_from_discard_choice_count_le_2') {
@@ -167,7 +170,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
             gameState.destroyedPile.push(...cardsToDestroy);
             player.discard = player.discard.filter(card => !chosenCardIds.includes(card.instanceId));
 
-            console.log(`Destroyed ${cardsToDestroy.length} card(s) from discard.`);
+            const message = engine.t('log_cards_destroyed').replace('{COUNT}', cardsToDestroy.length);
+            engine.logEvent(message, 'system');
             engine.renderGameBoard();
         }
     } else if (effectTag === 'may_gain_card_type_kick_from_kick_stack_to_hand') {
@@ -223,9 +227,11 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         if (userWantsToDestroy) {
             const destroyedCard = player.deck.pop();
             gameState.destroyedPile.push(destroyedCard);
-            console.log(`Nth Metal destroyed ${destroyedCard.name_en} from the top of the deck.`);
+            const message = engine.t('log_nth_metal_destroy').replace('{CARD_NAME}', destroyedCard[langKey] || destroyedCard.name_en);
+            engine.logEvent(message, 'player');
         } else {
-            console.log(`Nth Metal left ${topCard.name_en} on top of the deck.`);
+            const message = engine.t('log_nth_metal_keep').replace('{CARD_NAME}', topCard[langKey] || topCard.name_en);
+            engine.logEvent(message, 'player');
         }
     } else if (effectTag === 'play_card_from_lineup_choice_type_equipment_hero_superpower_then_return_eot') {
         const validChoices = gameState.lineUp.filter(card => card && ['Equipment', 'Hero', 'Super Power'].includes(card.type));
@@ -236,7 +242,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
         const cardToPlay = validChoices.find(c => c.instanceId === chosenId);
         const originalIndex = gameState.lineUp.findIndex(c => c && c.instanceId === chosenId);
         if (cardToPlay && originalIndex !== -1) {
-            console.log(`Emerald Knight borrows ${cardToPlay.name_pl} from Line-Up.`);
+            const message = engine.t('log_emerald_knight_borrow').replace('{CARD_NAME}', cardToPlay[langKey] || cardToPlay.name_en);
+            engine.logEvent(message, 'player');
             gameState.lineUp[originalIndex] = null;
             player.borrowedCards.push({ card: cardToPlay, originalIndex: originalIndex });
             await engine.playCard(cardToPlay, { isTemporary: true });
@@ -246,7 +253,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
 
         const svOriginalCard = gameState.superVillainStack.shift();
         engine.renderGameBoard(); // Odśwież widok, aby pokazać pusty stos
-        console.log(`J'onn J'onzz is playing ${svOriginalCard.name_pl}...`);
+        const message = engine.t('log_jonn_jonzz_play').replace('{CARD_NAME}', svOriginalCard[langKey] || svOriginalCard.name_en);
+        engine.logEvent(message, 'player');
 
         // KROK 1: Ręcznie dodaj moc bazową pożyczonej karty
         gameState.currentPower += svOriginalCard.power || 0;
@@ -407,11 +415,11 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
 
         } else if (effectTag === 'double_total_power_this_turn') {
             player.turnFlags.powerIsDoubled = true;
-            console.log("Parallax effect activated: Power will be doubled this turn.");
+            engine.logEvent(engine.t('log_parallax_effect'), 'player');
             gameState.currentPower *= 2;
 
         } else if (effectTag === 'each_opponent_chooses_discard_1_random_from_hand_or_active_player_draws_1') {
-            console.log("Joker's on-play effect: No opponents to target in solo mode.");
+            engine.logEvent(engine.t('log_joker_solo'), 'system');
 
     } else if (effectTag === 'destroy_any_number_of_cards_from_lineup_choice_then_refill_lineup') {
         const validChoices = gameState.lineUp.filter(c => c !== null);
@@ -437,7 +445,8 @@ cardEffects.on_play_effect = async (gameState, player, effectTag, engine, detail
             });
 
             gameState.destroyedPile.push(...cardsToDestroy);
-            console.log(`Anti-Monitor destroyed ${cardsToDestroy.length} card(s) from the Line-Up.`);
+            const message = engine.t('log_anti_monitor_destroy').replace('{COUNT}', cardsToDestroy.length);
+            engine.logEvent(message, 'player');
 
             for (let i = 0; i < gameState.lineUp.length; i++) {
                 if (gameState.lineUp[i] === null && gameState.mainDeck.length > 0) {
@@ -468,7 +477,8 @@ cardEffects.internal_effect = async (gameState, player, effectTag, engine, detai
                 if(cardsToMove.length > 0) {
                     player.discard = player.discard.filter(c => !gainedCardIds.includes(c.instanceId));
                     player.hand.push(...cardsToMove);
-                    console.log(`Dark Knight (Catwoman combo): Moved ${cardsToMove.length} card(s) to hand.`);
+                    const message = t('log_dark_knight_combo').replace('{COUNT}', cardsToMove.length);
+                    logEvent(message, 'player');
                 }
             }
         }

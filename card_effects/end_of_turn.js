@@ -1,4 +1,5 @@
 cardEffects.eot_effect = async (gameState, player, effectTag, engine, details) => {
+    const { logEvent, t } = engine;
     const { cardWithEffect } = details;
     const langKey = `name_${currentLang}`;
 

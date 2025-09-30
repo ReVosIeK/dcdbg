@@ -529,6 +529,68 @@ input[type='range'] {
   margin: 5px 0 10px; /* Dodaje trochę odstępu */
 }
 
+#game-log-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 350px;
+    height: 230px;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+}
+
+#game-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    user-select: none;
+}
+
+#game-log-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--color-primary);
+}
+
+#game-log-header .close-button {
+    position: static;
+    width: 24px;
+    height: 24px;
+    font-size: 20px;
+}
+
+#game-log-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.log-entry {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border);
+}
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry.log-player { color: #87ceeb; } /* Sky Blue */
+.log-entry.log-ai { color: #ff8c69; } /* Salmon */
+.log-entry.log-system { color: #98978b; font-style: italic; } /* Gray */
+.log-entry.log-attack { color: #ff4500; font-weight: bold; } /* Orange Red */
+.log-entry.log-victory { color: #ffd700; font-weight: bold; } /* Gold */
+
 /* --- SEKCJA MODALI --- */
 .modal-overlay {
   position: fixed;
