@@ -52,3 +52,14 @@ export function drawCards(player, count, gameState, options = {}) {
         }
     }
 }
+
+// NOWA FUNKCJA
+/**
+ * Sprawdza, czy karta jest traktowana jako typ 'Super Power' (uwzględniając 'Kick').
+ * @param {object} card Obiekt karty do sprawdzenia.
+ * @returns {boolean} True, jeśli karta jest supermocą.
+ */
+export function isSuperPowerType(card) {
+    if (!card || !card.type) return false;
+    return card.type === 'Super Power' || card.type === 'Kick';
+}

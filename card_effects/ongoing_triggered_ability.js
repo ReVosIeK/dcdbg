@@ -4,6 +4,8 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
     const { playedCard } = details;
     if (!playedCard) return;
 
+    const { isSuperPowerType } = engine;
+
     switch (effectTag) {
         case 'on_play_first_equipment_per_turn_draw_1': {
             const playsOfThisType = player.playedCardTypeCounts.get(playedCard.type) || 0;
@@ -27,11 +29,16 @@ cardEffects.ongoing_triggered_ability = (gameState, player, effectTag, engine, d
             }
             break;
         }
-        case 'on_play_first_superpower_per_turn_draw_1': {
-            const playsOfThisType = player.playedCardTypeCounts.get(playedCard.type) || 0;
-            if (playedCard.type === 'Super Power' && playsOfThisType === 1) {
-                console.log("Fortress of Solitude triggered: drawing 1 card.");
-                engine.drawCards(player, 1, gameState, { source: 'ability' })
+        case 'on_play_first_superpower_per_turn_draw_1': { // Efekt dla Fortecy Samotności
+            if (isSuperPowerType(playedCard)) {
+                const totalSuperPowersPlayed = [...player.playedCards]
+                    .filter(card => isSuperPowerType(card))
+                    .length;
+
+                if (totalSuperPowersPlayed === 1) {
+                    console.log("Fortress of Solitude triggered: drawing 1 card.");
+                    engine.drawCards(player, 1, gameState, { source: 'ability' });
+                }
             }
             break;
         }

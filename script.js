@@ -1,5 +1,5 @@
 import { AttackManager } from './attackSystem.js';
-import { shuffle, drawCards } from './utils.js';
+import { shuffle, drawCards, isSuperPowerType } from './utils.js';
 import { aiPlayer, initializeAI, executeAITurn } from './aiPlayer.js';
 
 export const STANDARD_LINEUP_SIZE = 5;
@@ -901,7 +901,8 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCards,
         gainCard,
         applyCardEffect,
-        renderGameBoard
+        renderGameBoard,
+        isSuperPowerType
         };
 
         const isTemporary = options.isTemporary || false;
@@ -962,12 +963,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameState.currentPower += 1;
             }
             if (playerHeroes.some(h => h.id === 'superman')) {
-                const isDistinctSuperPower = !allPlayedCards.some(c => c.id === playedCard.id && (c.type === 'Super Power' || c.type === 'Kick'));
-                if ((playedCard.type === 'Super Power' || playedCard.type === 'Kick') && isDistinctSuperPower) {
+                const isDistinctSuperPower = !allPlayedCards.some(c => c.id === playedCard.id && isSuperPowerType(c));
+                if (isSuperPowerType(playedCard) && isDistinctSuperPower) {
                     gameState.currentPower += 1;
                 }
             }
-            if (playerHeroes.some(h => h.id === 'cyborg') && (playedCard.type === 'Super Power' || playedCard.type === 'Kick') && !gameState.player.turnFlags.cyborgPowerUsed) {
+            if (playerHeroes.some(h => h.id === 'cyborg') && isSuperPowerType(playedCard) && !gameState.player.turnFlags.cyborgPowerUsed) {
                 gameState.currentPower += 1;
                 gameState.player.turnFlags.cyborgPowerUsed = true;
             }
@@ -1043,22 +1044,33 @@ document.addEventListener('DOMContentLoaded', () => {
             gameState.currentPower -= effectiveCost;
             const defeatedVillain = gameState.superVillainStack.shift();
             await gainCard(gameState.player, defeatedVillain);
+            
+            const langKey = `name_${currentLang}`;
+            console.log(
+                `%cPlayer DEFEATS: ${defeatedVillain[langKey] || defeatedVillain.name_en}!`,
+                'color: #ffd700; font-size: 1.2em; font-weight: bold; background-color: #333; padding: 2px 5px; border-radius: 3px;'
+            );
+
+            await gainCard(gameState.player, defeatedVillain, { silent: true });
+            
             gameState.svDefeatedThisTurn = true;
             
             renderGameBoard();
 
-            // --- POPRAWKA: Sprawdź warunki końca gry zaraz po pokonaniu SV ---
             if (checkEndGameConditions()) {
-                return; // Zatrzymaj dalsze przetwarzanie, jeśli gra się skończyła
+                return;
             }
 
             renderGameBoard();
         }
     }
 
-    async function gainCard(player, cardToGain) {
-        const langKey = `name_${currentLang}`;
-        console.log(`Player is gaining ${cardToGain[langKey] || cardToGain.name_en}`);
+    async function gainCard(player, cardToGain, options = {}) {
+        if (!options.silent) {
+            const langKey = `name_${currentLang}`;
+            console.log(`Player is gaining ${cardToGain[langKey] || cardToGain.name_en}`);
+        }
+
         let destination = player.discard;
 
         // Sprawdź efekty, które zawsze mogą się aktywować (nie są jednorazowe na turę)
@@ -1114,7 +1126,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gainCard,
         drawCards,
         applyCardEffect,
-        renderGameBoard
+        renderGameBoard,
+        isSuperPowerType
         };
         
         if (gameState.superVillainStack.length > 0) {
@@ -1264,12 +1277,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     }
 
-    function triggerEndGame() {
+    function triggerEndGame(reason) {
         console.log("Calculating final scores...");
         const playerScore = calculatePlayerScore(gameState.player);
-        const aiScore = calculatePlayerScore(aiPlayer); // Obliczamy też wynik AI
+        const aiScore = calculatePlayerScore(aiPlayer);
 
-        const reasonText = t(`game_over_reason_${reason.split('_')[0]}`); // Bierzemy 'sv' lub 'deck' z powodu
+        const reasonKey = reason.split('_')[0]; // np. 'sv' lub 'deck'
+        const reasonText = t(`game_over_reason_${reasonKey}`);
         const endMessage = t('game_over_alert')
             .replace('{REASON}', reasonText)
             .replace('{PLAYER_SCORE}', playerScore)
@@ -1299,7 +1313,8 @@ document.addEventListener('DOMContentLoaded', () => {
             drawCards,
             gainCard,
             applyCardEffect,
-            renderGameBoard
+            renderGameBoard,
+            isSuperPowerType
         };
 
         if (cardEffects && typeof cardEffects[effectName] === 'function') {

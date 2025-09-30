@@ -42,7 +42,7 @@ export function initializeAI(allCards) {
  * @param {object} gameState - Główny obiekt stanu gry.
  */
 export async function executeAITurn(gameState) {
-    console.log("%c--- Rozpoczęcie tury AI ---", "color: red; font-weight: bold;");
+    console.log("%c--- Start AI's Turn ---", "color: red; font-weight: bold;");
     
     const playArea = document.getElementById('play-area-wrapper');
     const aiPowerDisplay = document.getElementById('ai-power-value');
@@ -73,7 +73,7 @@ export async function executeAITurn(gameState) {
     playArea.innerHTML = '';
     aiPowerDisplay.textContent = '0';
     
-    console.log("%c--- Koniec tury AI ---", "color: red; font-weight: bold;");
+    console.log("%c--- End AI's Turn ---", "color: red; font-weight: bold;");
 }
 
 // --- LOGIKA FAZ DLA POZIOMU ŚREDNIEGO ---
