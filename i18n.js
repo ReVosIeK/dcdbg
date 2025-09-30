@@ -22,6 +22,17 @@ const translations = {
         difficulty_medium: "Średni",
         difficulty_hard: "Trudny",
 
+        // === STEROWANIE ===
+        controls_button: "Sterowanie",
+        controls_modal_title: "Sterowanie w Grze",
+        controls_lmb_header: "Lewy Przycisk Myszy (LPM)",
+        controls_lmb_desc: "• Zagranie karty z ręki.\n• Zakup karty z Line-Up lub stosów.\n• Wybór opcji w oknach dialogowych.",
+        controls_rmb_header: "Prawy Przycisk Myszy (PPM)",
+        controls_rmb_desc: "• Kliknięcie na dowolnej karcie otwiera \"inspektor\", który ją powiększa i wyświetla pełny opis.",
+        controls_drag_header: "Kliknięcie i Przeciągnięcie (LPM)",
+        controls_drag_desc: "• Przewijanie zawartości strefy ręki oraz strefy zagranych kart, jeśli nie mieszczą się na ekranie.",
+        controls_tooltip_ingame: "Sterowanie",
+
         // === PLANSZA GRY I STREFY ===
         power_display: "Moc:",
         end_turn: "Zakończ Turę",
@@ -37,6 +48,16 @@ const translations = {
         play_area_zone: "Strefa Gry",
         player_hand_zone: "Ręka Gracza",
         superhero_zone: "Superbohater",
+        how_to_play_tooltip: "Jak Grać?",
+        quick_reminder_tooltip: "Szybka Przypominajka",
+        how_to_play_title: "Jak Grać w DC Deck-Building Game",
+        htp_goal_header: "CEL GRY",
+        htp_goal_text: "Celem gry jest zdobycie jak największej liczby Punktów Zwycięstwa (PZ) poprzez kupowanie kart i pokonywanie Super-złoczyńców. Gra kończy się, gdy ostatni Super-złoczyńca zostanie pokonany lub gdy główna talia kart się wyczerpie.",
+        htp_turn_header: "TWOJA TURA",
+        htp_turn_text: "W swojej turze zagrywaj karty z ręki, aby generować Moc. Użyj Mocy, aby kupować nowe, lepsze karty z Line-Up lub pokonać aktualnego Super-złoczyńcę.",
+        htp_buy_header: "KUPNO KART",
+        htp_buy_text: "Wszystkie zakupione karty trafiają na Twój stos kart odrzuconych. Kiedy Twoja talia się wyczerpie, przetasujesz stos kart odrzuconych, tworząc nową talię, a zakupione karty zaczną pojawiać się w Twojej ręce.",
+        htp_reminder_title: "Szybka Przypominajka",
 
         // === PASEK MENU / TOOLTIPS ===
         debug_panel_tooltip: "Panel Debugowania",
@@ -267,6 +288,17 @@ const translations = {
         difficulty_medium: "Medium",
         difficulty_hard: "Hard",
 
+        // === CONTROLS ===
+        controls_button: "Controls",
+        controls_modal_title: "Game Controls",
+        controls_lmb_header: "Left Mouse Button (LMB)",
+        controls_lmb_desc: "• Play a card from your hand.\n• Buy a card from the Line-Up or the stacks.\n• Select options in dialog windows.",
+        controls_rmb_header: "Right Mouse Button (RMB)",
+        controls_rmb_desc: "• Clicking on any card opens the 'inspector' view, which enlarges the card and shows its full description.",
+        controls_drag_header: "Click & Drag (LMB)",
+        controls_drag_desc: "• Scrolls the contents of your hand and the play area if they don't fit on the screen.",
+        controls_tooltip_ingame: "Controls",
+
         // === GAMEPLAY UI ===
         power_display: "Power:",
         end_turn: "End Turn",
@@ -284,6 +316,16 @@ const translations = {
         play_area_zone: "Play Area",
         player_hand_zone: "Player Hand",
         superhero_zone: "Superhero",
+        how_to_play_tooltip: "How to Play?",
+        quick_reminder_tooltip: "Quick Reminder",
+        how_to_play_title: "How to Play DC Deck-Building Game",
+        htp_goal_header: "GOAL OF THE GAME",
+        htp_goal_text: "The goal is to score the most Victory Points (VP) by buying cards and defeating Super-Villains. The game ends when the last Super-Villain is defeated or when the main deck runs out of cards.",
+        htp_turn_header: "YOUR TURN",
+        htp_turn_text: "On your turn, play cards from your hand to generate Power. Use that Power to buy new, better cards from the Line-Up or to defeat the current Super-Villain.",
+        htp_buy_header: "BUYING CARDS",
+        htp_buy_text: "All purchased cards go into your discard pile. When your deck runs out, you will shuffle your discard pile to form a new deck, and the cards you've bought will start appearing in your hand.",
+        htp_reminder_title: "Quick Reminder",
 
         // === TOOLBAR / TOOLTIPS ===
         debug_panel_tooltip: "Debug Panel",

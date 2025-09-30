@@ -48,6 +48,7 @@ export function initializeAI(allCards) {
  * @param {object} gameState - Główny obiekt stanu gry.
  */
 export async function executeAITurn(gameState, logEvent, t, gainCard) {
+    document.getElementById('turn-blocker').classList.remove('hidden');
     logEvent(`${t('log_turn_starts')} AI`, 'system');
     
     const playArea = document.getElementById('play-area-wrapper');

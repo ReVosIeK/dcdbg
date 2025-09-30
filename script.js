@@ -19,7 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- SELEKTORY ELEMENTÓW DOM ---
     const screens = { start: document.getElementById('start-screen'), mainMenu: document.getElementById('main-menu-screen'), settings: document.getElementById('settings-screen'), game: document.getElementById('game-container'), 'pre-game': document.getElementById('pre-game-modal') };
-    const buttons = { play: document.getElementById('play-button'), singlePlayer: document.getElementById('single-player-button'), multiplayer: document.getElementById('multiplayer-button'), settings: document.getElementById('settings-button'), backToMenu: document.getElementById('back-to-menu-button'), endTurn: document.getElementById('end-turn-button') };
+
+    const buttons = { 
+        play: document.getElementById('play-button'), 
+        singlePlayer: document.getElementById('single-player-button'), 
+        multiplayer: document.getElementById('multiplayer-button'), 
+        settings: document.getElementById('settings-button'), 
+        backToMenu: document.getElementById('back-to-menu-button'), 
+        endTurn: document.getElementById('end-turn-button'),
+        controls: document.getElementById('controls-button') // <-- DODAJ TĘ LINIĘ
+    };
+
     const gameBoardElements = { playerHand: document.getElementById('player-hand-container'), handCardsWrapper: document.getElementById('hand-cards-wrapper'), lineUp: document.getElementById('line-up-container'), playArea: document.getElementById('play-area-container'), playAreaWrapper: document.getElementById('play-area-wrapper'), mainDeck: document.getElementById('main-deck-container'), playerDeck: document.getElementById('player-deck-container'), playerDiscard: document.getElementById('discard-pile-container'), locations: document.getElementById('locations-container'), destroyed: document.getElementById('destroyed-pile-container'), kickStack: document.getElementById('kick-stack-container'), weaknessStack: document.getElementById('weakness-stack-container'), superVillainStack: document.getElementById('super-villain-stack-container'), superheroArea: document.getElementById('superhero-card-area'), powerValue: document.getElementById('power-value'), };
     const debug = { toggleButton: document.getElementById('debug-toggle-button'), closeButton: document.getElementById('debug-close-button'), panel: document.getElementById('debug-panel'), powerAdd: document.getElementById('debug-power-add'), powerRemove: document.getElementById('debug-power-remove'), drawCard: document.getElementById('debug-draw-card'), endGame: document.getElementById('debug-end-game'), addToHandBtn: document.getElementById('debug-add-to-hand-btn'), addToLineupBtn: document.getElementById('debug-add-to-lineup-btn'), destroyCardBtn: document.getElementById('debug-destroy-card-btn'), selectionContainer: document.getElementById('debug-selection-container'), browseStacksBtn: document.getElementById('debug-browse-stacks-btn'), setSpecialBtn: document.getElementById('debug-set-special-btn') };
     const cardInspectorModal = document.getElementById('card-inspector-modal');
@@ -66,36 +76,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupEventListeners() {
+        // --- GRUPA: SELEKTORY GŁÓWNYCH ELEMENTÓW ---
         const languageSelect = document.getElementById('language-select');
         const languageSelectIngame = document.getElementById('language-select-ingame');
         const polishToggle = document.getElementById('polish-descriptions-toggle');
         const polishToggleIngame = document.getElementById('polish-descriptions-toggle-ingame');
         const preGameModal = document.getElementById('pre-game-modal');
         const exitGameButton = document.getElementById('exit-game-button');
+        const controlsModal = document.getElementById('controls-modal');
+        const howToPlayModal = document.getElementById('how-to-play-modal');
+        const howToPlayButton = document.getElementById('how-to-play-button');
+        const controlsIngameButton = document.getElementById('controls-ingame-button');
+        const specialsContainer = document.getElementById('specials-container');
+        const logToggleButton = document.getElementById('log-toggle-button');
+        const logPanel = document.getElementById('game-log-panel');
+        const logCloseButton = document.getElementById('log-close-button');
+        const debugHeader = debug.panel?.querySelector('h3');
 
-        if(buttons.play) buttons.play.addEventListener('click', () => showScreen('mainMenu'));
-        if(buttons.settings) buttons.settings.addEventListener('click', () => showScreen('settings'));
-        if(buttons.backToMenu) buttons.backToMenu.addEventListener('click', () => showScreen('mainMenu'));
-        
-        if(buttons.singlePlayer) buttons.singlePlayer.addEventListener('click', () => showScreen('pre-game'));
-        
-        if(preGameModal) {
+        // --- GRUPA: PRZYCISKI MENU GŁÓWNEGO I MODALE ---
+        if (buttons.play) buttons.play.addEventListener('click', () => showScreen('mainMenu'));
+        if (buttons.settings) buttons.settings.addEventListener('click', () => showScreen('settings'));
+        if (buttons.backToMenu) buttons.backToMenu.addEventListener('click', () => showScreen('mainMenu'));
+        if (buttons.singlePlayer) buttons.singlePlayer.addEventListener('click', () => showScreen('pre-game'));
+
+        if (buttons.controls && controlsModal) {
+            buttons.controls.addEventListener('click', () => controlsModal.classList.remove('hidden'));
+            const closeModal = controlsModal.querySelector('.close-button');
+            if (closeModal) closeModal.addEventListener('click', () => controlsModal.classList.add('hidden'));
+            controlsModal.addEventListener('click', (e) => {
+                if (e.target === controlsModal) controlsModal.classList.add('hidden');
+            });
+        }
+
+        // --- GRUPA: LOGIKA WYBORU TRYBU GRY (PRE-GAME) ---
+        if (preGameModal) {
             const step1 = document.getElementById('pre-game-step-1');
             const step2 = document.getElementById('pre-game-step-2');
-            let chosenSuperheroCount = 1; // Domyślna wartość
+            let chosenSuperheroCount = 1;
 
             const setupDifficultyButtons = () => {
                 step2.querySelectorAll('.btn').forEach(button => {
                     const newButton = button.cloneNode(true);
                     button.parentNode.replaceChild(newButton, button);
-                    
                     newButton.addEventListener('click', () => {
                         const difficulty = newButton.dataset.difficulty;
                         showScreen('game');
-                        startGame({ 
-                            superheroCount: chosenSuperheroCount,
-                            difficulty: difficulty 
-                        });
+                        startGame({ superheroCount: chosenSuperheroCount, difficulty: difficulty });
                     });
                 });
             };
@@ -105,82 +131,95 @@ document.addEventListener('DOMContentLoaded', () => {
                 step1.classList.add('hidden');
                 step2.classList.remove('hidden');
             });
-
             document.getElementById('play-two-superheroes-btn').addEventListener('click', () => {
                 chosenSuperheroCount = 2;
                 step1.classList.add('hidden');
                 step2.classList.remove('hidden');
             });
-
             document.getElementById('back-to-main-menu-from-pre-game').addEventListener('click', () => {
-
                 step2.classList.add('hidden');
                 step1.classList.remove('hidden');
                 showScreen('mainMenu');
             });
-
             setupDifficultyButtons();
         }
 
-        if(gameBoard) gameBoard.addEventListener('contextmenu', handleCardRightClick);
-        if(choiceModal) choiceModal.addEventListener('contextmenu', handleCardRightClick);
-        
-        if(closeModalButton) closeModalButton.addEventListener('click', hideInspector);
-        if(cardInspectorModal) cardInspectorModal.addEventListener('click', (e) => { if (e.target === cardInspectorModal) hideInspector(); });
-        if(gameBoardElements.playerHand) gameBoardElements.playerHand.addEventListener('click', handlePlayerHandClick);
-        if(gameBoardElements.lineUp) gameBoardElements.lineUp.addEventListener('click', handleLineUpClick);
-        if(gameBoardElements.kickStack) gameBoardElements.kickStack.addEventListener('click', handleKickStackClick);
-        if(gameBoardElements.superVillainStack) gameBoardElements.superVillainStack.addEventListener('click', handleSuperVillainStackClick);
-        if(buttons.endTurn) buttons.endTurn.addEventListener('click', endTurn);
-        
-        if(languageSelect) languageSelect.addEventListener('change', (e) => { setLanguage(e.target.value); });
-        if(languageSelectIngame) languageSelectIngame.addEventListener('change', (e) => { setLanguage(e.target.value); renderGameBoard(); });
+        // --- GRUPA: PRZYCISKI POMOCY W TRAKCIE GRY ---
+        if (howToPlayButton && howToPlayModal) {
+            const closeModal = howToPlayModal.querySelector('.close-button');
+            howToPlayButton.addEventListener('click', () => howToPlayModal.classList.remove('hidden'));
+            if (closeModal) closeModal.addEventListener('click', () => howToPlayModal.classList.add('hidden'));
+            howToPlayModal.addEventListener('click', (e) => {
+                if (e.target === howToPlayModal) howToPlayModal.classList.add('hidden');
+            });
+        }
+        if (controlsIngameButton && controlsModal) {
+            controlsIngameButton.addEventListener('click', () => controlsModal.classList.remove('hidden'));
+        }
 
-        if(polishToggle) polishToggle.addEventListener('change', (e) => {
-            settingsState.showPolishTooltips = e.target.checked;
-            if(polishToggleIngame) polishToggleIngame.checked = e.target.checked;
-        });
-        if(polishToggleIngame) polishToggleIngame.addEventListener('change', (e) => {
-            settingsState.showPolishTooltips = e.target.checked;
-            if(polishToggle) polishToggle.checked = e.target.checked;
-        });
+        // --- GRUPA: INTERAKCJE Z PLANSZĄ GRY ---
+        if (gameBoard) gameBoard.addEventListener('contextmenu', handleCardRightClick);
+        if (choiceModal) choiceModal.addEventListener('contextmenu', handleCardRightClick);
+        if (closeModalButton) closeModalButton.addEventListener('click', hideInspector);
+        if (cardInspectorModal) cardInspectorModal.addEventListener('click', (e) => { if (e.target === cardInspectorModal) hideInspector(); });
+        if (buttons.endTurn) buttons.endTurn.addEventListener('click', endTurn);
 
-        if(settingsIngameButton) settingsIngameButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.remove('hidden'); });
-        if(closeIngameSettingsButton) closeIngameSettingsButton.addEventListener('click', () => { if(ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
-        if(ingameSettingsModal) ingameSettingsModal.addEventListener('click', (e) => { if (e.target === ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
-        
-        if(resetGameButton) resetGameButton.addEventListener('click', async () => {
-            const userConfirmed = await promptConfirmation(t('reset_game_confirm'));
-            if (userConfirmed) {
-                console.clear(); 
-                startGame({ superheroCount: gameState.player.superheroes.length });
-            }
-        });
-        
-        if(exitGameButton) {
-            exitGameButton.addEventListener('click', async () => {
-                const userConfirmed = await promptConfirmation(t('exit_game_confirm'));
-                if (userConfirmed) {
-                    console.clear();
+        if (gameBoardElements.playerHand) gameBoardElements.playerHand.addEventListener('click', handlePlayerHandClick);
+        if (gameBoardElements.lineUp) gameBoardElements.lineUp.addEventListener('click', handleLineUpClick);
+        if (gameBoardElements.kickStack) gameBoardElements.kickStack.addEventListener('click', handleKickStackClick);
+        if (gameBoardElements.superVillainStack) gameBoardElements.superVillainStack.addEventListener('click', handleSuperVillainStackClick);
 
-                    const step1 = document.getElementById('pre-game-step-1');
-                    const step2 = document.getElementById('pre-game-step-2');
-                    if (step1 && step2) {
-                        step2.classList.add('hidden');
-                        step1.classList.remove('hidden');
-                    }
-
-                    showScreen('mainMenu');
+        if (specialsContainer) {
+            specialsContainer.addEventListener('click', (event) => {
+                const clickedStack = event.target.closest('[data-stack-name]');
+                if (clickedStack) {
+                    showStackContents(clickedStack.dataset.stackName);
                 }
             });
         }
 
-        if(uiScaleSlider) uiScaleSlider.addEventListener('input', (e) => { if(gameBoard) gameBoard.style.transform = `scale(${e.target.value})`; });
+        // --- GRUPA: USTAWIENIA I PRZYCISKI PASKÓW MENU ---
+        if (languageSelect) languageSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+        if (languageSelectIngame) languageSelectIngame.addEventListener('change', (e) => { setLanguage(e.target.value); renderGameBoard(); });
+        if (polishToggle) polishToggle.addEventListener('change', (e) => {
+            settingsState.showPolishTooltips = e.target.checked;
+            if (polishToggleIngame) polishToggleIngame.checked = e.target.checked;
+        });
+        if (polishToggleIngame) polishToggleIngame.addEventListener('change', (e) => {
+            settingsState.showPolishTooltips = e.target.checked;
+            if (polishToggle) polishToggle.checked = e.target.checked;
+        });
+
+        if (settingsIngameButton) settingsIngameButton.addEventListener('click', () => { if (ingameSettingsModal) ingameSettingsModal.classList.remove('hidden'); });
+        if (closeIngameSettingsButton) closeIngameSettingsButton.addEventListener('click', () => { if (ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
+        if (ingameSettingsModal) ingameSettingsModal.addEventListener('click', (e) => { if (e.target === ingameSettingsModal) ingameSettingsModal.classList.add('hidden'); });
         
-        if(debug.toggleButton) debug.toggleButton.addEventListener('click', () => { debug.panel.classList.toggle('hidden'); debug.selectionContainer.innerHTML = ''; });
-        if(debug.closeButton) debug.closeButton.addEventListener('click', () => { debug.panel.classList.add('hidden'); debug.selectionContainer.innerHTML = ''; });
-        
-        if(debug.powerAdd) debug.powerAdd.addEventListener('click', async () => {
+        if (resetGameButton) resetGameButton.addEventListener('click', async () => {
+            const userConfirmed = await promptConfirmation(t('reset_game_confirm'));
+            if (userConfirmed) {
+                console.clear();
+                startGame({ superheroCount: gameState.player.superheroes.length });
+            }
+        });
+        if (exitGameButton) exitGameButton.addEventListener('click', async () => {
+            const userConfirmed = await promptConfirmation(t('exit_game_confirm'));
+            if (userConfirmed) {
+                console.clear();
+                const step1 = document.getElementById('pre-game-step-1');
+                const step2 = document.getElementById('pre-game-step-2');
+                if (step1 && step2) {
+                    step2.classList.add('hidden');
+                    step1.classList.remove('hidden');
+                }
+                showScreen('mainMenu');
+            }
+        });
+        if (uiScaleSlider) uiScaleSlider.addEventListener('input', (e) => { if (gameBoard) gameBoard.style.transform = `scale(${e.target.value})`; });
+
+        // --- GRUPA: PANEL DEBUGOWANIA ---
+        if (debug.toggleButton) debug.toggleButton.addEventListener('click', () => { debug.panel.classList.toggle('hidden'); debug.selectionContainer.innerHTML = ''; });
+        if (debug.closeButton) debug.closeButton.addEventListener('click', () => { debug.panel.classList.add('hidden'); debug.selectionContainer.innerHTML = ''; });
+        if (debug.powerAdd) debug.powerAdd.addEventListener('click', async () => {
             if (!gameState.player) return;
             const amount = await promptForValue(t('debug_add_power'));
             if (amount !== null && amount > 0) {
@@ -188,8 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderGameBoard();
             }
         });
-
-        if(debug.powerRemove) debug.powerRemove.addEventListener('click', async () => {
+        if (debug.powerRemove) debug.powerRemove.addEventListener('click', async () => {
             if (!gameState.player) return;
             const amount = await promptForValue(t('debug_remove_power'));
             if (amount !== null && amount > 0) {
@@ -197,38 +235,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderGameBoard();
             }
         });
-
-        if(debug.drawCard) debug.drawCard.addEventListener('click', () => { if (!gameState.player) return; drawCards(gameState.player, 1, gameState); renderGameBoard(); });
-        if(debug.endGame) debug.endGame.addEventListener('click', () => {
+        if (debug.drawCard) debug.drawCard.addEventListener('click', () => { if (!gameState.player) return; drawCards(gameState.player, 1, gameState); renderGameBoard(); });
+        if (debug.endGame) debug.endGame.addEventListener('click', () => {
             const score = calculatePlayerScore(gameState.player);
             alert(t('debug_end_game_alert').replace('{SCORE}', score));
         });
-        if(debug.addToHandBtn) debug.addToHandBtn.addEventListener('click', () => createCardSelector('addToHand', t('add_to_hand_prompt')));
-        if(debug.addToLineupBtn) debug.addToLineupBtn.addEventListener('click', () => createCardSelector('addToLineup', t('add_to_lineup_prompt')));
-        if(debug.destroyCardBtn) debug.destroyCardBtn.addEventListener('click', () => createCardSelector('destroyCard', t('destroy_card_prompt')));
-        if(debug.browseStacksBtn) debug.browseStacksBtn.addEventListener('click', () => showStackSelector());
-        if(debug.setSpecialBtn) debug.setSpecialBtn.addEventListener('click', () => createSpecialCardSetter());
-        
-        if(choiceModalCancel) choiceModalCancel.addEventListener('click', () => choiceModal.classList.add('hidden'));
-        
-        const debugHeader = debug.panel?.querySelector('h3');
+        if (debug.addToHandBtn) debug.addToHandBtn.addEventListener('click', () => createCardSelector('addToHand', t('add_to_hand_prompt')));
+        if (debug.addToLineupBtn) debug.addToLineupBtn.addEventListener('click', () => createCardSelector('addToLineup', t('add_to_lineup_prompt')));
+        if (debug.destroyCardBtn) debug.destroyCardBtn.addEventListener('click', () => createCardSelector('destroyCard', t('destroy_card_prompt')));
+        if (debug.browseStacksBtn) debug.browseStacksBtn.addEventListener('click', () => showStackSelector());
+        if (debug.setSpecialBtn) debug.setSpecialBtn.addEventListener('click', () => createSpecialCardSetter());
+        if (choiceModalCancel) choiceModalCancel.addEventListener('click', () => choiceModal.classList.add('hidden'));
+
+        // --- GRUPA: LOGIKA PRZECIĄGANIA (DRAG & DROP) ---
         if (debugHeader) {
             let isDragging = false, offsetX, offsetY;
             debugHeader.addEventListener('mousedown', (e) => { isDragging = true; offsetX = e.clientX - debug.panel.offsetLeft; offsetY = e.clientY - debug.panel.offsetTop; debug.panel.style.transform = 'none'; document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp); });
             function onMouseMove(e) { if (!isDragging) return; debug.panel.style.left = `${e.clientX - offsetX}px`; debug.panel.style.top = `${e.clientY - offsetY}px`; }
             function onMouseUp() { isDragging = false; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
         }
-
-        const logToggleButton = document.getElementById('log-toggle-button');
-        const logPanel = document.getElementById('game-log-panel');
-        const logCloseButton = document.getElementById('log-close-button');
-        const logHeader = document.getElementById('game-log-header');
-
-        if (logToggleButton) logToggleButton.addEventListener('click', () => logPanel.classList.toggle('hidden'));
-        if (logCloseButton) logCloseButton.addEventListener('click', () => logPanel.classList.add('hidden'));
-
+        
         const makeWrapperDraggable = (wrapperElement) => {
-            if(!wrapperElement) return;
+            if (!wrapperElement) return;
             let isDown = false, startX, scrollLeft;
             wrapperElement.addEventListener('mousedown', (e) => { isDown = true; wrapperElement.classList.add('active'); startX = e.pageX - wrapperElement.offsetLeft; scrollLeft = wrapperElement.scrollLeft; });
             wrapperElement.addEventListener('mouseleave', () => { isDown = false; wrapperElement.classList.remove('active'); });
@@ -237,22 +265,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         makeWrapperDraggable(gameBoardElements.handCardsWrapper);
         makeWrapperDraggable(gameBoardElements.playAreaWrapper);
-    }
 
-    window.showDebugPanel = function(visible) {
-        if (debug.toggleButton) {
-            if (visible) {
-                debug.toggleButton.classList.remove('hidden');
-                console.log('Przycisk panelu debugowania został WŁĄCZONY.');
-            } else {
-                debug.toggleButton.classList.add('hidden');
-                debug.panel.classList.add('hidden');
-                console.log('Przycisk panelu debugowania został WYŁĄCZONY.');
-            }
-        } else {
-            console.error('Nie znaleziono przycisku panelu debugowania.');
-        }
-    };
+        // --- GRUPA: DZIENNIK ZDARZEŃ ---
+        if (logToggleButton) logToggleButton.addEventListener('click', () => logPanel.classList.toggle('hidden'));
+        if (logCloseButton) logCloseButton.addEventListener('click', () => logPanel.classList.add('hidden'));
+    }
     
     function showScreen(screenId) {
         Object.values(screens).forEach(screen => { if(screen) screen.classList.remove('active'); });
@@ -261,7 +278,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function findCardByInstanceId(instanceId) {
         if (!gameState.player) return null;
-        const allCardLocations = [ ...gameState.player.hand, ...gameState.player.discard, ...gameState.player.playedCards, ...gameState.player.deck, ...gameState.lineUp, ...gameState.kickStack, ...gameState.weaknessStack, ...gameState.superVillainStack, ...gameState.destroyedPile, ...gameState.player.ongoing, ...gameState.player.superheroes, ...temporaryCardContext ];
+
+        const allCardLocations = [
+
+            // Stosy gracza
+            ...gameState.player.hand, 
+            ...gameState.player.discard, 
+            ...gameState.player.playedCards, 
+            ...gameState.player.deck, 
+            ...gameState.player.ongoing, 
+            ...gameState.player.superheroes,
+            
+            // Stosy AI
+            ...aiPlayer.hand,
+            ...aiPlayer.discard,
+            ...aiPlayer.playedCards,
+            ...aiPlayer.deck,
+            ...aiPlayer.ongoing,
+            ...aiPlayer.superheroes,
+
+            // Stosy wspólne
+            ...gameState.lineUp, 
+            ...gameState.kickStack, 
+            ...gameState.weaknessStack, 
+            ...gameState.superVillainStack, 
+            ...gameState.destroyedPile, 
+            ...temporaryCardContext
+        ];
+
         const uniqueCards = [...new Map(allCardLocations.filter(c => c).map(item => [item.instanceId, item])).values()];
         return uniqueCards.find(card => card && card.instanceId === instanceId);
     }
@@ -675,6 +719,38 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButton.textContent = t('cancel');
         cancelButton.onclick = () => { debug.selectionContainer.innerHTML = ''; };
         debug.selectionContainer.append(label, select, confirmButton, cancelButton);
+    }
+
+    function showStackContents(stackName) {
+        const stackData = {
+            playerDiscard: { name: t('discard_pile_zone'), stack: gameState.player.discard },
+            destroyedPile: { name: t('destroyed_pile_zone'), stack: gameState.destroyedPile }
+        };
+
+        const selected = stackData[stackName];
+        if (!selected) return;
+
+        choiceModalTitle.textContent = `${t('stack_contents_title')} ${selected.name}`;
+        choiceModalCards.innerHTML = '';
+        if (selected.stack.length > 0) {
+            [...selected.stack].sort((a, b) => (a[`name_${currentLang}`] || a.name_en).localeCompare(b[`name_${currentLang}`] || b.name_en)).forEach(card => {
+                choiceModalCards.appendChild(createCardElement(card));
+            });
+        } else {
+            choiceModalCards.innerHTML = `<p>${t('empty_stack_text')}</p>`;
+        }
+
+        // Konfiguracja modala do trybu "tylko do odczytu"
+        document.getElementById('choice-modal-confirm').classList.add('hidden');
+        const cancelBtn = document.getElementById('choice-modal-cancel');
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        newCancelBtn.style.display = 'inline-block';
+        newCancelBtn.textContent = t('ok_button'); // Zmieniamy tekst na "OK"
+        newCancelBtn.addEventListener('click', () => choiceModal.classList.add('hidden'), { once: true });
+
+        choiceModal.classList.remove('hidden');
     }
     
     function createSpecialCardSetter() {
@@ -1277,6 +1353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkEndGameConditions()) return; // Sprawdź koniec gry ponownie
 
         // POCZĄTEK NOWEJ TURY GRACZA
+        document.getElementById('turn-blocker').classList.add('hidden');
         logEvent(`${t('log_turn_starts')} ${t('player_label')}`, 'system');
         gameState.currentPower = 0;
         updateHUD();
